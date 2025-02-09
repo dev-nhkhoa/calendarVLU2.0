@@ -1,14 +1,5 @@
+import { vluLoginURL, vluURL } from '@/lib/urls'
 import { NextRequest } from 'next/server'
-
-export const vluUrl = 'https://online.vlu.edu.vn'
-export const vluLoginUrl = `${vluUrl}/login`
-export const vluHomeUrl = `${vluUrl}/Home`
-
-export enum TermId {
-  HK01 = 'HK01',
-  HK02 = 'HK02',
-  HK03 = 'HK03',
-}
 
 /**
  * Handles the GET request to login to VLU.
@@ -30,7 +21,7 @@ export async function GET(req: NextRequest) {
   // get vlu cookie
   const handleGetVluCookie = async () => {
     try {
-      const fetchVluServer = await fetch(vluUrl)
+      const fetchVluServer = await fetch(vluURL)
       const loginCookie = fetchVluServer.headers.get('set-cookie')?.split(';')[0]
       return loginCookie
     } catch (error) {
@@ -54,7 +45,7 @@ export async function GET(req: NextRequest) {
   applyAuth.append('txtMatKhau', password)
 
   // thanks to @PhucChiVas161 for advice!
-  const loginResponse = await fetch(vluLoginUrl, {
+  const loginResponse = await fetch(vluLoginURL, {
     method: 'POST',
     headers: applyCookieHeader,
     body: applyAuth,

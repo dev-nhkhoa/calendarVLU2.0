@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { vluHomeUrl } from "../login/route";
+import { vluHomeUrl } from "../check-vlu-account/route";
 const {JSDOM} = await import('jsdom'); 
 
 export async function GET(req: NextRequest) {

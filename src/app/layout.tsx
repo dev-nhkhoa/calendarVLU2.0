@@ -1,23 +1,23 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import type React from 'react'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "calendarVLU 2.0",
-  description: "Web app for VLU students to manage their schedule, export to Google Calendar, and more.",
-};
+  title: 'CalendarVLU2.0',
+  description: 'Convert Van Lang University calendar to various formats',
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased`}
-      >
-        {children}
+      <body className={inter.className}>
+        <div className="relative min-h-screen flex flex-col">
+          <main className="flex-grow">{children}</main>
+        </div>
       </body>
     </html>
-  );
+  )
 }

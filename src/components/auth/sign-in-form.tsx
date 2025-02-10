@@ -14,23 +14,21 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LucidePersonStanding } from 'lucide-react'
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
-  }),
-  password: z.string().min(8, {
-    message: 'Password must be at least 8 characters.',
+  id: z.string(),
+  password: z.string().min(5, {
+    message: 'Password must be at least 5 characters.',
   }),
 })
 
 export function SignInForm() {
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      id: '',
       password: '',
     },
   })
@@ -40,7 +38,7 @@ export function SignInForm() {
 
     try {
       const result = await signIn('credentials', {
-        email: values.email,
+        id: values.id,
         password: values.password,
         redirect: true,
         callbackUrl,
@@ -60,12 +58,12 @@ export function SignInForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="email"
+            name="id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Student ID</FormLabel>
                 <FormControl>
-                  <Input placeholder="name@example.com" {...field} />
+                  <Input placeholder="227xxxxxxxx" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -104,9 +102,6 @@ export function SignInForm() {
         </Button>
         <Button variant="outline" onClick={() => signIn('azure-ad', { callbackUrl })} disabled={isLoading}>
           Microsoft Account
-        </Button>
-        <Button variant="outline" onClick={() => signIn('azure-ad', { callbackUrl })} disabled={isLoading}>
-          Van Lang Account
         </Button>
       </div>
       <Alert>

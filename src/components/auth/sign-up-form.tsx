@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+
 import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
@@ -43,17 +44,33 @@ export function SignUpForm() {
     setIsLoading(true)
 
     try {
-      // TODO: Implement actual sign-up logic here
-      console.log(values)
-      // After successful sign-up, you might want to sign in the user automatically
-      // const result = await signIn("credentials", {
-      //   email: values.email,
-      //   password: values.password,
-      //   redirect: true,
-      //   callbackUrl,
-      // })
+      const response = await fetch('/api/auth/credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+          name: values.name,
+        }),
+      })
+
+      if (response.status != 302) {
+        alert(await response.text())
+        return
+      }
+
+      const { user } = await response.json()
+      await signIn('credentials', {
+        email: values.email,
+        password: values.password,
+        callbackUrl,
+      })
+
+      console.log(user)
     } catch (error) {
-      console.error(error)
+      alert(error)
     } finally {
       setIsLoading(false)
     }

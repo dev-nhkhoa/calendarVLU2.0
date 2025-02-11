@@ -23,7 +23,7 @@ export default function SignInPage() {
           </div>
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
-              <p className="text-lg">&quot;Never miss a class with VLUCalen - Your smart academic schedule companion.&quot;</p>
+              <p className="text-lg">&quot;Never miss a class with CalendarVLU - Your smart academic schedule companion.&quot;</p>
             </blockquote>
           </div>
         </div>

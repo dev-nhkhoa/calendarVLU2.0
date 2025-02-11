@@ -46,7 +46,7 @@ export function SignInForm() {
 
       console.log(result)
     } catch (error) {
-      console.error(error)
+      alert(error)
     } finally {
       setIsLoading(false)
     }

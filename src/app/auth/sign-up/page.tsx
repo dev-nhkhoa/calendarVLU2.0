@@ -23,7 +23,7 @@ export default function SignUpPage() {
           </div>
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
-              <p className="text-lg">&quot;Join VLUCalen and take control of your academic schedule today!&quot;</p>
+              <p className="text-lg">&quot;Join CalendarVLU and take control of your academic schedule today!&quot;</p>
             </blockquote>
           </div>
         </div>

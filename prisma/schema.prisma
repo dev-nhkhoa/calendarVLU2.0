@@ -9,10 +9,10 @@ generator client {
  
 model User {
   id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  studentId     String?         @unique
-  email         String?         @unique
+  name          String
+  email         String         @unique
   image         String?
+  emailVerified String?
   accounts      Account[]
  
   createdAt DateTime @default(now())
@@ -22,7 +22,7 @@ model User {
 model Account {
   id                String  @id @default(auto()) @map("_id") @db.ObjectId
   userId            String  @db.ObjectId
-  type              String
+  type              String?
   provider          String
   providerAccountId String?
   refresh_token     String? @db.String
@@ -32,6 +32,7 @@ model Account {
   scope             String?
   id_token          String? @db.String
   session_state     String?
+  student_id        String?
   hass_password     String?
  
   createdAt DateTime @default(now())

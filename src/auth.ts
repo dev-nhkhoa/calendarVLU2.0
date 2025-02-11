@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials'
 
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
-import { getUserByEmail } from './actions/auth'
+import { getCredentialAccountByUserId, getUserByEmail, verifyPassword } from './actions/auth'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -21,27 +21,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       credentials: {
         email: {},
-        id: {},
         password: {},
       },
-      // Todo: Change the return value to the user object
       authorize: async (credentials) => {
-        const { id, password, email } = credentials
+        const { password, email } = credentials
 
-        if (!id) {
-          const user = await getUserByEmail(email as string)
-          if (!user) return null
-          return user
-        }
+        const user = await getUserByEmail(email as string)
+        if (!user) return null
+        const credentialAccount = await getCredentialAccountByUserId(user.id)
+        if (!credentialAccount) return null
+        const isValid = await verifyPassword(password as string, credentialAccount.hass_password as string)
+        if (!isValid) return null
 
-        const request = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/check-vlu-account?id=${id}&password=${password}`, {
-          method: 'GET',
-        })
-
-        // TODO: Tạo tài khoản mới cho người dùng
-        if (!request.ok) return null
-
-        return { name: 'VLU User' }
+        return user
       },
     }),
   ],

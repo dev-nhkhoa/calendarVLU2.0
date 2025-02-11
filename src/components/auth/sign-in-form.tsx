@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LucidePersonStanding } from 'lucide-react'
 
 const formSchema = z.object({
-  id: z.string(),
+  email: z.string().email(),
   password: z.string().min(5, {
     message: 'Password must be at least 5 characters.',
   }),
@@ -28,7 +28,7 @@ export function SignInForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: '',
+      email: '',
       password: '',
     },
   })
@@ -38,7 +38,7 @@ export function SignInForm() {
 
     try {
       const result = await signIn('credentials', {
-        id: values.id,
+        email: values.email,
         password: values.password,
         redirect: true,
         callbackUrl,
@@ -58,12 +58,12 @@ export function SignInForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="id"
+            name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Student ID</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="227xxxxxxxx" {...field} />
+                  <Input placeholder="name@example.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

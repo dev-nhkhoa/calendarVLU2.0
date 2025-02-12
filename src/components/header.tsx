@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Calendar, Settings, Home, RefreshCw, LogOutIcon } from 'lucide-react'
+import { Calendar, Home, RefreshCw, LogOutIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -42,12 +42,11 @@ export default function HeaderPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Link href="/settings" className="text-sm font-medium transition-colors hover:text-primary flex items-center">
-                    <Settings className="h-4 w-4 lg:hidden" />
-                    <span className="hidden lg:inline-block">Cài đặt</span>
+                    <span className="lg:inline-block">Cài đặt</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" onClick={() => signOut()}>
+                <DropdownMenuItem className="text-red-600" onClick={() => signOut({ redirectTo: '/' })}>
                   <LogOutIcon /> Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -56,9 +55,6 @@ export default function HeaderPage() {
             <div className="flex space-x-4">
               <Button asChild variant="outline">
                 <Link href="/auth/sign-in">Sign In</Link>
-              </Button>
-              <Button asChild variant="secondary">
-                <Link href="/auth/sign-up">Sign Up</Link>
               </Button>
             </div>
           )}

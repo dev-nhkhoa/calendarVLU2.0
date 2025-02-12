@@ -1,31 +1,58 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChromeIcon as Google, Mail, ComputerIcon as Microsoft } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
-type Account = 'google' | 'vanLang' | 'microsoft'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import VanLangLoginForm from './van-lang-login-form'
+
+export type Account = 'vanLang'
 
 export default function SettingsForm() {
-  const [name, setName] = useState('John Doe')
-  const [email, setEmail] = useState('john.doe@example.com')
-  const [studentId, setStudentId] = useState('123456')
-  const [linkedAccounts, setLinkedAccounts] = useState<Account[]>(['vanLang'])
+  const { data: session } = useSession()
+  const [open, setOpen] = useState(false)
+  const [linkedAccounts, setLinkedAccounts] = useState<Account[]>([])
 
-  const handleLinkAccount = (account: Account) => {
-    if (!linkedAccounts.includes(account)) {
-      // TODO: Implement actual account linking logic
-      setLinkedAccounts([...linkedAccounts, account])
+  useEffect(() => {
+    async function fetchLinkedAccounts() {
+      const response = await fetch(`/api/linked-accounts?email=${session?.user?.email}`, {
+        method: 'GET',
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch linked accounts')
+        return
+      }
+
+      const data = await response.json()
+      const linkedProviders = Array.isArray(data) ? data.map((account) => account.provider as Account) : [data.provider as Account]
+      setLinkedAccounts(linkedProviders)
     }
-  }
+    fetchLinkedAccounts()
+  }, [session])
 
-  const handleUnlinkAccount = (account: Account) => {
-    // TODO: Implement actual account unlinking logic
+  async function handleUnlinkAccount(account: Account) {
+    if (account === 'vanLang') {
+      const response = await fetch(`/api/unlink-account?email=${session?.user?.email}&provider=${account}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        console.error('Failed to unlink account')
+        alert('Failed to unlink account')
+        return
+      }
+
+      alert('Account unlinked successfully')
+    }
     setLinkedAccounts(linkedAccounts.filter((a) => a !== account))
   }
+
+  if (!session) return <div>Không tìm thấy USER!</div>
 
   return (
     <div className="space-y-6">
@@ -36,18 +63,11 @@ export default function SettingsForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Label htmlFor="name">Name: {session?.user?.name}</Label>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Label htmlFor="email">Email: {session?.user?.email}</Label>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="studentId">Student ID</Label>
-            <Input id="studentId" value={studentId} onChange={(e) => setStudentId(e.target.value)} />
-          </div>
-          <Button>Save Changes</Button>
         </CardContent>
       </Card>
 
@@ -59,19 +79,6 @@ export default function SettingsForm() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Google className="h-6 w-6" />
-              <span>Google Account</span>
-            </div>
-            {linkedAccounts.includes('google') ? (
-              <Button variant="outline" onClick={() => handleUnlinkAccount('google')}>
-                Unlink
-              </Button>
-            ) : (
-              <Button onClick={() => handleLinkAccount('google')}>Link Account</Button>
-            )}
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
               <Mail className="h-6 w-6" />
               <span>Van Lang Account</span>
             </div>
@@ -80,20 +87,18 @@ export default function SettingsForm() {
                 Unlink
               </Button>
             ) : (
-              <Button onClick={() => handleLinkAccount('vanLang')}>Link Account</Button>
-            )}
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Microsoft className="h-6 w-6" />
-              <span>Microsoft Account</span>
-            </div>
-            {linkedAccounts.includes('microsoft') ? (
-              <Button variant="outline" onClick={() => handleUnlinkAccount('microsoft')}>
-                Unlink
-              </Button>
-            ) : (
-              <Button onClick={() => handleLinkAccount('microsoft')}>Link Account</Button>
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button>Link Account</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Liên kết tài khoản VLU ( online.vlu.edu.vn )</DialogTitle>
+                    <DialogDescription>Liên kết tài khoản VLU của bạn nhằm mục đích trích xuất lịch học, lịch thi của bạn.</DialogDescription>
+                  </DialogHeader>
+                  <VanLangLoginForm setOpen={setOpen} setLinkedAccounts={setLinkedAccounts} userEmail={session?.user?.email || ''} />
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </CardContent>

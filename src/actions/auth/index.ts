@@ -21,6 +21,24 @@ export async function addCredentialUser2DB({ ...props }) {
   })
 }
 
+export async function addVLUCredentialAccount({ id, password, userId }: { id: string; password: string; userId: string }) {
+  const hassedPassword = await bcrypt.hash(password, 10)
+
+  return await prisma.account.create({
+    data: {
+      type: 'credential',
+      provider: 'vanLang',
+      user: {
+        connect: {
+          id: userId,
+        },
+      },
+      student_id: id,
+      hass_password: hassedPassword,
+    },
+  })
+}
+
 export async function getUser(id: string) {
   return await prisma.user.findUnique({ where: { id } })
 }
@@ -35,4 +53,13 @@ export async function verifyPassword(password: string, hashedPassword: string) {
 
 export async function getCredentialAccountByUserId(userId: string) {
   return await prisma.account.findFirst({ where: { userId, provider: 'credential' } })
+}
+
+export async function getAllUserAccounts(userId: string) {
+  return await prisma.account.findMany({ where: { userId } })
+}
+
+export async function deleteAccount(email: string, provider: string) {
+  const user = await prisma.user.findUnique({ where: { email } })
+  return await prisma.account.deleteMany({ where: { userId: user?.id, provider } })
 }

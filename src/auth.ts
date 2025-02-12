@@ -4,13 +4,12 @@ import Credentials from 'next-auth/providers/credentials'
 
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
-import { getCredentialAccountByUserId, getUserByEmail, verifyPassword } from './actions/auth'
+import { addVLUCredentialAccount, getUserByEmail } from './actions/auth'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   pages: {
     signIn: '/auth/sign-in',
-    signOut: '/auth/sign-out',
   },
   session: {
     strategy: 'jwt',
@@ -20,18 +19,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({}),
     Credentials({
       credentials: {
-        email: {},
+        id: {},
         password: {},
+        userEmail: {},
       },
       authorize: async (credentials) => {
-        const { password, email } = credentials
+        const { id, password, userEmail } = credentials as { id: string; password: string; userEmail: string }
 
-        const user = await getUserByEmail(email as string)
+        console.log(userEmail)
+
+        const user = await getUserByEmail(userEmail)
+        console.log(user)
+
         if (!user) return null
-        const credentialAccount = await getCredentialAccountByUserId(user.id)
-        if (!credentialAccount) return null
-        const isValid = await verifyPassword(password as string, credentialAccount.hass_password as string)
-        if (!isValid) return null
+
+        //Add Van Lang Account to DB
+        const vluCredentialAccount = await addVLUCredentialAccount({ id, password, userId: user.id })
+        console.log(vluCredentialAccount)
+
+        if (!vluCredentialAccount) return null
 
         return user
       },

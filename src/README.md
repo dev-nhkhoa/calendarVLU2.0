@@ -4,17 +4,15 @@
 
 - Giới thiệu về website, cách thức vận hành và dòng thời gian phát triển,...
 
-## SignIn & SignUp Page
+## Sign In Page
 
 - Tài khoản có thể liên kết với tài khoản trang online.vlu.edu.vn và google để sync lịch học sang google calendar sau này.
-
-- Ý tưởng là có thể dùng tài khoản trang online || google để đăng nhập luôn mà không cần đăng ký.
 
 Dùng auth.js Credentials & Google Provider
 
 - [Auth.js | Authentication for the Web](https://authjs.dev/)
 
-- [Auth.js | Credentials](https://authjs.dev/getting-started/providers/credentials?framework=next-js)
+- [Auth.js | Credentials](https://authjs.dev/getting-started/providers/credentials?framework=next-js) cho tài khoản Văn Lang
 
 - [Auth.js | Google](https://authjs.dev/getting-started/providers/google?framework=next-js)
 

@@ -10,31 +10,23 @@ export async function addCredentialUser2DB({ ...props }) {
     data: {
       type: 'email',
       provider: 'credential',
-      user: {
-        create: {
-          email: props.email,
-          name: props.name,
-        },
-      },
+      user: { create: { email: props.email, name: props.name } },
       hass_password: props.hassedPassword,
     },
   })
 }
 
-export async function addVLUCredentialAccount({ id, password, userId }: { id: string; password: string; userId: string }) {
+export async function addVLUCredentialAccount({ id, password, cookie, userId }: { id: string; password: string; cookie: string; userId: string }) {
   const hassedPassword = await bcrypt.hash(password, 10)
 
   return await prisma.account.create({
     data: {
       type: 'credential',
       provider: 'vanLang',
-      user: {
-        connect: {
-          id: userId,
-        },
-      },
+      user: { connect: { id: userId } },
       student_id: id,
       hass_password: hassedPassword,
+      access_token: cookie,
     },
   })
 }

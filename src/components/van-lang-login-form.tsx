@@ -36,7 +36,11 @@ export default function VanLangLoginForm({ setOpen, setLinkedAccounts, userEmail
         return
       }
 
-      signIn('credentials', { id: vanlang_id, password: vanlang_password, userEmail: userEmail })
+      console.log(checkVLUAccount)
+      const response = await checkVLUAccount.json()
+      const cookie = response.cookie as string
+
+      signIn('credentials', { id: vanlang_id, password: vanlang_password, cookie: cookie, userEmail: userEmail })
       setLinkedAccounts((prev) => [...prev, 'vanLang'])
     } catch (error) {
       console.error('Form submission error', error)

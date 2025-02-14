@@ -22,20 +22,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         id: {},
         password: {},
         userEmail: {},
+        cookie: {},
       },
       authorize: async (credentials) => {
-        const { id, password, userEmail } = credentials as { id: string; password: string; userEmail: string }
-
-        console.log(userEmail)
+        const { id, password, cookie, userEmail } = credentials as { id: string; password: string; cookie: string; userEmail: string }
 
         const user = await getUserByEmail(userEmail)
-        console.log(user)
 
         if (!user) return null
 
         //Add Van Lang Account to DB
-        const vluCredentialAccount = await addVLUCredentialAccount({ id, password, userId: user.id })
-        console.log(vluCredentialAccount)
+        const vluCredentialAccount = await addVLUCredentialAccount({ id, password, cookie, userId: user.id })
 
         if (!vluCredentialAccount) return null
 

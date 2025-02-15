@@ -1,8 +1,22 @@
 import { prisma } from '@/lib/prisma'
+import { Account } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
 export async function checkUserExist(email: string) {
   return await prisma.user.findUnique({ where: { email } })
+}
+
+export async function createAccount(account: Account, userEmail: string) {
+  return await prisma.account.create({
+    data: {
+      type: 'credential',
+      provider: account.provider,
+      student_id: account.student_id,
+      hass_password: account.hass_password,
+      access_token: account.access_token,
+      user: { connect: { email: userEmail } },
+    },
+  })
 }
 
 export async function addCredentialUser2DB({ ...props }) {
@@ -16,17 +30,17 @@ export async function addCredentialUser2DB({ ...props }) {
   })
 }
 
-export async function addVLUCredentialAccount({ id, password, cookie, userId }: { id: string; password: string; cookie: string; userId: string }) {
-  const hassedPassword = await bcrypt.hash(password, 10)
+export async function addVLUCredentialAccount({ account }: { account: Account }) {
+  const hassedPassword = await bcrypt.hash(account.hass_password as string, 10)
 
   return await prisma.account.create({
     data: {
       type: 'credential',
       provider: 'vanLang',
-      user: { connect: { id: userId } },
-      student_id: id,
+      user: { connect: { id: account.userId } },
+      student_id: account.id,
       hass_password: hassedPassword,
-      access_token: cookie,
+      access_token: account.access_token,
     },
   })
 }
@@ -36,7 +50,7 @@ export async function getUser(id: string) {
 }
 
 export async function getUserByEmail(email: string) {
-  return await prisma.user.findUnique({ where: { email } })
+  return await prisma.user.findUnique({ where: { email }, include: { accounts: true } })
 }
 
 export async function verifyPassword(password: string, hashedPassword: string) {
@@ -51,7 +65,6 @@ export async function getAllUserAccounts(userId: string) {
   return await prisma.account.findMany({ where: { userId } })
 }
 
-export async function deleteAccount(email: string, provider: string) {
-  const user = await prisma.user.findUnique({ where: { email } })
-  return await prisma.account.deleteMany({ where: { userId: user?.id, provider } })
+export async function deleteAccount(id: string) {
+  return await prisma.account.deleteMany({ where: { id } })
 }

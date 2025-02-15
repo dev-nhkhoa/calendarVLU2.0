@@ -12,8 +12,6 @@ export async function GET(req: NextRequest) {
   const user = await getUserByEmail(email)
   if (!user) return new Response('User not found', { status: 404 })
 
-  console.log(user.accounts)
-
   return new Response(JSON.stringify(user.accounts), {
     headers: { 'Content-Type': 'application/json' },
   })
@@ -21,8 +19,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const { account, userEmail } = await req.json()
-
-  console.log(req)
 
   console.log(account, userEmail)
   if (!account || !userEmail) return new Response('Missing email, provider or providerId', { status: 400 })

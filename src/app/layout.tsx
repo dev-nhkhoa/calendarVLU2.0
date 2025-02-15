@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import type React from 'react'
 import { SessionProvider } from 'next-auth/react'
+import { AppProvider } from '@/app-provider'
+import { ToastContainer } from 'react-toastify'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,7 +17,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <AppProvider>
+            {children}
+            <ToastContainer autoClose={1500} />
+          </AppProvider>
+        </SessionProvider>
       </body>
     </html>
   )

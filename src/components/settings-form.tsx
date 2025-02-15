@@ -1,58 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Mail } from 'lucide-react'
-import { useSession } from 'next-auth/react'
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import VanLangLoginForm from './van-lang-login-form'
-
-export type Account = 'vanLang'
+import { useApp } from '@/app-provider'
 
 export default function SettingsForm() {
-  const { data: session } = useSession()
+  const { user, accounts, deleteAccount } = useApp()
   const [open, setOpen] = useState(false)
-  const [linkedAccounts, setLinkedAccounts] = useState<Account[]>([])
 
-  useEffect(() => {
-    async function fetchLinkedAccounts() {
-      const response = await fetch(`/api/linked-accounts?email=${session?.user?.email}`, {
-        method: 'GET',
-      })
-
-      if (!response.ok) {
-        console.error('Failed to fetch linked accounts')
-        return
-      }
-
-      const data = await response.json()
-      const linkedProviders = Array.isArray(data) ? data.map((account) => account.provider as Account) : [data.provider as Account]
-      setLinkedAccounts(linkedProviders)
-    }
-    fetchLinkedAccounts()
-  }, [session])
-
-  async function handleUnlinkAccount(account: Account) {
+  async function handleUnlinkAccount(account: string) {
     if (account === 'vanLang') {
-      const response = await fetch(`/api/unlink-account?email=${session?.user?.email}&provider=${account}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        console.error('Failed to unlink account')
-        alert('Failed to unlink account')
-        return
-      }
-
-      alert('Account unlinked successfully')
+      const vanLangAccount = accounts.find((acc) => acc.provider === account)
+      if (vanLangAccount) deleteAccount(vanLangAccount)
     }
-    setLinkedAccounts(linkedAccounts.filter((a) => a !== account))
   }
 
-  if (!session) return <div>Không tìm thấy USER!</div>
+  if (!user) return <div>Không tìm thấy USER!</div>
 
   return (
     <div className="space-y-6">
@@ -63,10 +32,10 @@ export default function SettingsForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name: {session?.user?.name}</Label>
+            <Label htmlFor="name">Name: {user.name}</Label>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email: {session?.user?.email}</Label>
+            <Label htmlFor="email">Email: {user.email}</Label>
           </div>
         </CardContent>
       </Card>
@@ -82,7 +51,7 @@ export default function SettingsForm() {
               <Mail className="h-6 w-6" />
               <span>Van Lang Account</span>
             </div>
-            {linkedAccounts.includes('vanLang') ? (
+            {accounts.filter((account) => account.provider == 'vanLang').length > 0 ? (
               <Button variant="outline" onClick={() => handleUnlinkAccount('vanLang')}>
                 Unlink
               </Button>
@@ -96,7 +65,7 @@ export default function SettingsForm() {
                     <DialogTitle>Liên kết tài khoản VLU ( online.vlu.edu.vn )</DialogTitle>
                     <DialogDescription>Liên kết tài khoản VLU của bạn nhằm mục đích trích xuất lịch học, lịch thi của bạn.</DialogDescription>
                   </DialogHeader>
-                  <VanLangLoginForm setOpen={setOpen} setLinkedAccounts={setLinkedAccounts} userEmail={session?.user?.email || ''} />
+                  <VanLangLoginForm setOpen={setOpen} />
                 </DialogContent>
               </Dialog>
             )}

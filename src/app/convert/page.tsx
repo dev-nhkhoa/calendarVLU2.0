@@ -8,6 +8,7 @@ import { getCurrentTermID, getCurrentYearStudy, TermID } from '@/lib/calendar'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import Loading from '@/components/loading'
+import { calendarToCsv, downloadFile } from '@/lib/export'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
@@ -28,6 +29,8 @@ export default function ConvertPage() {
   const vluAccount = accounts.find((account) => account.provider === 'vanLang')
 
   if (!vluAccount) toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
+
+  console.log(calendar)
 
   const getCalendar = useCallback(
     async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
@@ -180,7 +183,23 @@ export default function ConvertPage() {
       ) : calendar == undefined ? (
         <p>Không tìm thấy thời khóa biểu phù hợp!</p>
       ) : (
-        <CalendarTableMemoized calendar={calendar} />
+        <div className="flex justify-center flex-col gap-4">
+          <CalendarTableMemoized calendar={calendar} />
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={() => {
+                if (calendar) {
+                  const csv = calendarToCsv(calendar, yearStudy)
+                  downloadFile(csv, 'lich.csv', 'text/csv')
+                }
+              }}
+            >
+              Xuất file lịch .csv
+            </Button>
+            <Button>Xuất file lịch .ical</Button>
+            <Button>Xuất lịch Google Calendar</Button>
+          </div>
+        </div>
       )}
       {!vluAccount && <AddVLUAccountDialog open={addAccount} setOpen={setAddAccount} />}
     </div>

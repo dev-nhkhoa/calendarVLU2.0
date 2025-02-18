@@ -1,6 +1,7 @@
 'use server'
 
 import { getUserByEmail, deleteAccount, createAccount } from '@/actions/auth'
+import { deleteCalendars } from '@/actions/calendar'
 import { Account } from '@prisma/client'
 import { NextRequest } from 'next/server'
 
@@ -36,6 +37,8 @@ export async function DELETE(req: NextRequest) {
   const account: Account = await req.json()
 
   if (!account) return new Response('Missing Account Information', { status: 400 })
+
+  await deleteCalendars(account.userId)
 
   const deleted = await deleteAccount(account.id)
 

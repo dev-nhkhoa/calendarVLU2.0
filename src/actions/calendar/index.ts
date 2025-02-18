@@ -31,3 +31,7 @@ export async function updateCalendar(calendarId: string, details: string): Promi
 export async function getCalendar(userId: string, termId: string, yearStudy: string, lichType: string): Promise<Calendar | null> {
   return await prisma.calendar.findFirst({ where: { user: { id: userId }, termId, yearStudy, lichType } })
 }
+
+export async function deleteCalendars(userId: string) {
+  return await prisma.calendar.deleteMany({ where: { userId } })
+}

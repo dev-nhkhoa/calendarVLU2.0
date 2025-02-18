@@ -1,11 +1,13 @@
 'use client'
 
 import { useApp } from '@/app-provider'
+import AddVLUAccountDialog from '@/components/add-vlu-account-dialog'
 import { Calendar, CalendarTable } from '@/components/calendar-table'
 import { Button } from '@/components/ui/button'
 import { getCurrentTermID, getCurrentYearStudy, TermID } from '@/lib/calendar'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
+import Loading from '@/components/loading'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
@@ -20,7 +22,12 @@ export default function ConvertPage() {
 
   const [calendar, setCalendar] = useState<Calendar | undefined>(undefined)
 
+  const [addAccount, setAddAccount] = useState(false) // State để mở dialog thêm tài khoản
+  const [isLoading, setIsLoading] = useState(false) // Thêm state isLoading
+
   const vluAccount = accounts.find((account) => account.provider === 'vanLang')
+
+  if (!vluAccount) toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
 
   const getCalendar = useCallback(
     async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
@@ -61,12 +68,17 @@ export default function ConvertPage() {
 
   const handleFetchSchedule = useCallback(
     async (currentCookie: string, retryCount = 0, yearStudy = currentYearStudy, termId = currentTermID, lichType = currentLichType) => {
-      if (!vluAccount || retryCount > MAX_RETRY) return
+      if (!vluAccount || retryCount > MAX_RETRY) {
+        setIsLoading(false)
+        return
+      }
 
       if (retryCount == MAX_RETRY) {
         toast.error('Đã thử quá số lần cho phép, không thể tải lịch!')
         return
       }
+
+      setIsLoading(true)
 
       try {
         // Thực hiện request lấy lịch
@@ -100,6 +112,8 @@ export default function ConvertPage() {
             handleFetchSchedule(currentCookie, retryCount + 1)
           }, 1000)
         }
+      } finally {
+        setIsLoading(false) // Kết thúc tất cả lần thử, tắt loading
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +173,16 @@ export default function ConvertPage() {
           </Button>
         </div>
       </div>
-      {calendar == undefined ? <p>Không tìm thấy thời khóa biểu phù hợp!</p> : <CalendarTableMemoized calendar={calendar} />}
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loading />
+        </div>
+      ) : calendar == undefined ? (
+        <p>Không tìm thấy thời khóa biểu phù hợp!</p>
+      ) : (
+        <CalendarTableMemoized calendar={calendar} />
+      )}
+      {!vluAccount && <AddVLUAccountDialog open={addAccount} setOpen={setAddAccount} />}
     </div>
   )
 }

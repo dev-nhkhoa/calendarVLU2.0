@@ -34,7 +34,7 @@ export default function VanLangLoginForm({ setOpen }: VanLangLoginFormProps) {
         return
       }
 
-      const cookie = (await checkVLUAccount.json()).cookie as string
+      const cookie = (await checkVLUAccount.json()) as string
 
       const newAccount = {
         student_id: vanlang_id,

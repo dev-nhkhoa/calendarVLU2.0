@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown } from 'lucide-react'
 
-interface Schedule {
+export interface Calendar {
   id: string
   name: string
   date: string
@@ -16,7 +16,7 @@ interface Schedule {
   weeks: number[]
 }
 
-const columns: ColumnDef<Schedule>[] = [
+const columns: ColumnDef<Calendar>[] = [
   {
     accessorKey: 'name',
     header: ({ column }) => {
@@ -68,36 +68,11 @@ const columns: ColumnDef<Schedule>[] = [
   },
 ]
 
-const scheduleData = Object.values({
-  '1': {
-    id: '242_71ITIS30603_01',
-    name: 'Chuyên đề Tối ưu hóa máy tìm kiếm',
-    date: 'Hai',
-    time: '4 - 6',
-    location: 'CS3.F.10.01',
-    teacher: 'Hà Đồng Hưng',
-    weeks: [18, 19, 20, 24, 25, 26, 27, 28, 29, 30],
-  },
-  '2': {
-    id: '242_71ISDT40303_01',
-    name: 'Hệ quản trị CSDL nâng cao',
-    date: 'Hai',
-    time: '7 - 9',
-    location: 'CS3.F.04.02',
-    teacher: 'Ngô Quốc Huy',
-    weeks: [18, 19, 20, 24, 25, 26, 27, 28, 29, 30],
-  },
-  // ... rest of the data
-}).map((item) => ({
-  ...item,
-  weeks: item.weeks || [],
-}))
-
-export function ScheduleTable() {
+export function CalendarTable({ calendar }: { calendar: Calendar }) {
   const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({
-    data: scheduleData,
+    data: Object.values(calendar),
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

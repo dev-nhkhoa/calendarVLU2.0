@@ -54,5 +54,5 @@ export async function GET(req: NextRequest) {
 
   if (loginResponse.status !== 302) return new Response('Failed to login to VLU', { status: 500 })
 
-  return new Response(JSON.stringify({ cookie: loginCookie }), { status: 200 })
+  return new Response(JSON.stringify(loginCookie), { status: 200 })
 }

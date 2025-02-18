@@ -36,6 +36,7 @@ export default function ConvertPage() {
         }),
       })
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentLichType, currentTermID, currentYearStudy], // Thêm currentLichType vào dependencies
   )
 
@@ -101,6 +102,7 @@ export default function ConvertPage() {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentTermID, currentYearStudy, getCalendar, handleRefreshCookie],
   )
 
@@ -134,6 +136,9 @@ export default function ConvertPage() {
           </select>
 
           <select value={yearStudy} onChange={(e) => setYearStudy(e.target.value)} className="border p-2 rounded">
+            <option value={getCurrentYearStudy(currentYear - 3)}>{getCurrentYearStudy(currentYear - 3)}</option>
+            <option value={getCurrentYearStudy(currentYear - 2)}>{getCurrentYearStudy(currentYear - 2)}</option>
+            <option value={getCurrentYearStudy(currentYear - 1)}>{getCurrentYearStudy(currentYear - 1)}</option>
             <option value={getCurrentYearStudy(currentYear)}>{getCurrentYearStudy(currentYear)}</option>
             <option value={getCurrentYearStudy(currentYear + 1)}>{getCurrentYearStudy(currentYear + 1)}</option>
             <option value={getCurrentYearStudy(currentYear + 2)}>{getCurrentYearStudy(currentYear + 2)}</option>

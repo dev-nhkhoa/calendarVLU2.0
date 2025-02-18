@@ -1,27 +1,11 @@
-import { vluHomeURL } from '@/lib/urls'
+import { getCalendar, saveCalendar } from '@/actions/calendar'
+import { getCurrentTermID, getCurrentYearStudy, LICH } from '@/lib/calendar'
 import { NextRequest } from 'next/server'
 
 const { JSDOM } = await import('jsdom')
 
-export async function GET(req: NextRequest) {
-  const { termID, lichType, yearStudy, loginCookie } = Object.fromEntries(new URL(req.url).searchParams)
-
-  if (!termID || !lichType || !yearStudy || !loginCookie) return new Response('Missing termID, lichType or yearStudy', { status: 400 })
-
-  // fetch to vlu to get lich hoc or lich thi
-  let urlLichFetch = ''
-  if (lichType == 'lichHoc') urlLichFetch = 'DrawingStudentSchedule_Perior'
-  else if (lichType == 'lichThi') urlLichFetch = 'DrawingStudentExamSchedule_Perior'
-  else return new Response('Invalid lichType', { status: 400 })
-
-  const vluCalendar = await fetch(`${vluHomeURL}/${urlLichFetch}?YearStudy=${yearStudy}&TermID=${termID}`, {
-    method: 'GET',
-    headers: { Cookie: loginCookie },
-    redirect: 'follow',
-  })
-
-  const vluCalendarText = await vluCalendar.text()
-  const dom = new JSDOM(vluCalendarText)
+function formatRawCalendar(rawSchedule: string): string {
+  const dom = new JSDOM(rawSchedule)
   const document = dom.window.document
 
   const rows = document.querySelectorAll('tbody tr')
@@ -40,5 +24,43 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } })
+  return JSON.stringify(data)
+}
+
+const url = 'https://online.vlu.edu.vn/Home/'
+
+export async function POST(req: NextRequest) {
+  // eslint-disable-next-line prefer-const
+  let { termId, yearStudy, cookie, userId, lichType } = await req.json()
+
+  if (!userId) return new Response('Missing userId', { status: 400 })
+
+  termId = termId ?? getCurrentTermID()
+  yearStudy = yearStudy ?? getCurrentYearStudy()
+  const getLich = lichType == 'lichHoc' ? LICH.LichHoc : LICH.LichThi
+
+  // cần check trong db xem đã lưu lịch chưa, nếu có thì trả về lịch đã lưu còn không thì fetch vlu để lấy lịch
+  const getDbCalendar = await getCalendar(userId, termId, yearStudy, lichType)
+
+  if (getDbCalendar) return new Response(JSON.stringify(getDbCalendar), { status: 200, headers: { 'Content-Type': 'application/json' } })
+
+  // code 200 && status ok thì lấy được lịch
+  const response = await fetch(`${url}/${getLich}?YearStudy=${yearStudy}&TermID=${termId}`, {
+    method: 'GET',
+    headers: { Cookie: cookie },
+    redirect: 'manual',
+  })
+
+  // Log thông báo hết hạn, trả về status 501 để client biết và xử lý lấy cookie mới
+  if (!response.ok || response.status != 200) return new Response('Cookie Expired!', { status: 501 })
+
+  // Lấy lịch học từ response raw
+  const rawCalendar = (await response.text()).trim()
+
+  const formattedCalendar = formatRawCalendar(rawCalendar)
+
+  // lưu lịch vào db
+  const savedCalendar = await saveCalendar(userId, formattedCalendar, termId, yearStudy, lichType)
+
+  return new Response(JSON.stringify(savedCalendar), { status: 201, headers: { 'Content-Type': 'application/json' } })
 }

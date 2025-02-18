@@ -20,7 +20,6 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const { account, userEmail } = await req.json()
 
-  console.log(account, userEmail)
   if (!account || !userEmail) return new Response('Missing email, provider or providerId', { status: 400 })
 
   const user = await getUserByEmail(userEmail)

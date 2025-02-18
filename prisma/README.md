@@ -29,6 +29,18 @@
 - `scope`: Phạm vi quyền hạn
 - `id_token`: Token định danh
 - `session_state`: Trạng thái phiên
-- `hass_password`: Mật khẩu đã mã hóa
+- `password`: Mật khẩu
 - `createdAt`: Thời gian tạo
 - `updatedAt`: Thời gian cập nhật
+
+### Bảng Calendar
+
+- `id`: ID lịch (MongoDB ObjectId)
+- `userId`: ID người dùng (khóa ngoại)
+- `yearStudy`: Năm học
+- `termId`: ID học kỳ
+- `lichType`: Loại lịch
+- `details`: Chi tiết lịch
+- `createdAt`: Thời gian tạo
+- `updatedAt`: Thời gian cập nhật
+- `user`: Quan hệ với bảng User

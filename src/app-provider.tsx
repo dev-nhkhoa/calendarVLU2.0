@@ -24,7 +24,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function fetchAccounts() {
-      const response = await fetch(`/api/auth/linked-accounts?email=${session?.user?.email}`, {
+      const response = await fetch(`/api/linked-accounts?email=${session?.user?.email}`, {
         method: 'GET',
       })
 
@@ -40,8 +40,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       fetchAccounts()
     }
   }, [session, setAccounts])
-
-  console.log(accounts)
 
   return <AppContext.Provider value={{ user, accounts, setUser, setAccounts, addAccount, deleteAccount }}>{children}</AppContext.Provider>
 }

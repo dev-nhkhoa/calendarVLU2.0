@@ -17,7 +17,7 @@ export const useAccountStore = create<useAccountStoreProps>((set) => {
     // Thêm tài khoản vào db rồi mới update state, giúp cho data trong state đồng bộ với db
     addAccount: (account: Account, userEmail: string) => {
       try {
-        fetch('/api/auth/linked-accounts', { method: 'POST', body: JSON.stringify({ account: account, userEmail: userEmail }) }).then((res) => {
+        fetch('/api/linked-accounts', { method: 'POST', body: JSON.stringify({ account: account, userEmail: userEmail }) }).then((res) => {
           if (!res.ok) throw new Error('Server Error!')
           res.json().then((account) => set((state) => ({ accounts: [...state.accounts, account] })))
         })
@@ -34,7 +34,7 @@ export const useAccountStore = create<useAccountStoreProps>((set) => {
       set((state) => ({ accounts: state.accounts.filter((a) => a.id !== account.id) }))
 
       try {
-        fetch('/api/auth/linked-accounts', { method: 'DELETE', body: JSON.stringify(account) }).then((res) => {
+        fetch('/api/linked-accounts', { method: 'DELETE', body: JSON.stringify(account) }).then((res) => {
           if (!res.ok) throw new Error('Server Error!')
 
           toast('Xóa tài khoản VLU thành công!')

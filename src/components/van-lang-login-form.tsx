@@ -8,7 +8,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { useApp } from '@/app-provider'
 import { Account } from '@prisma/client'
-import * as bcrypt from 'bcryptjs'
 
 const formSchema = z.object({
   vanlang_id: z.string(),
@@ -37,11 +36,9 @@ export default function VanLangLoginForm({ setOpen }: VanLangLoginFormProps) {
 
       const cookie = (await checkVLUAccount.json()).cookie as string
 
-      const hass_password = await bcrypt.hash(vanlang_password, 10)
-
       const newAccount = {
         student_id: vanlang_id,
-        hass_password: hass_password,
+        password: vanlang_password,
         access_token: cookie,
         type: 'credential',
         provider: 'vanLang',

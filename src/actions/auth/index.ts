@@ -12,7 +12,7 @@ export async function createAccount(account: Account, userEmail: string) {
       type: 'credential',
       provider: account.provider,
       student_id: account.student_id,
-      hass_password: account.hass_password,
+      password: account.password,
       access_token: account.access_token,
       user: { connect: { email: userEmail } },
     },
@@ -25,21 +25,19 @@ export async function addCredentialUser2DB({ ...props }) {
       type: 'email',
       provider: 'credential',
       user: { create: { email: props.email, name: props.name } },
-      hass_password: props.hassedPassword,
+      password: props.hassedPassword,
     },
   })
 }
 
 export async function addVLUCredentialAccount({ account }: { account: Account }) {
-  const hassedPassword = await bcrypt.hash(account.hass_password as string, 10)
-
   return await prisma.account.create({
     data: {
       type: 'credential',
       provider: 'vanLang',
       user: { connect: { id: account.userId } },
       student_id: account.id,
-      hass_password: hassedPassword,
+      password: account.password,
       access_token: account.access_token,
     },
   })
@@ -67,4 +65,15 @@ export async function getAllUserAccounts(userId: string) {
 
 export async function deleteAccount(id: string) {
   return await prisma.account.deleteMany({ where: { id } })
+}
+
+export async function updateAccount(id: string, data: Partial<Account>) {
+  return await prisma.account.update({
+    where: { id },
+    data,
+  })
+}
+
+export async function getAccount(id: string) {
+  return await prisma.account.findUnique({ where: { id } })
 }

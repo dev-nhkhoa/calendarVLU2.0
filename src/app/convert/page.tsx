@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-toastify'
 import Loading from '@/components/loading'
 import { calendarToCsv, downloadFile } from '@/lib/export'
+import { DownloadIcon } from 'lucide-react'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
@@ -30,7 +31,7 @@ export default function ConvertPage() {
 
   if (!vluAccount) toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
 
-  console.log(calendar)
+  console.log(yearStudy)
 
   const getCalendar = useCallback(
     async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
@@ -176,29 +177,17 @@ export default function ConvertPage() {
           </Button>
         </div>
       </div>
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loading />
-        </div>
-      ) : calendar == undefined ? (
-        <p>Không tìm thấy thời khóa biểu phù hợp!</p>
-      ) : (
-        <div className="flex justify-center flex-col gap-4">
-          <CalendarTableMemoized calendar={calendar} />
-          <div className="flex items-center justify-between">
-            <Button
-              onClick={() => {
-                if (calendar) {
-                  const csv = calendarToCsv(calendar, yearStudy)
-                  downloadFile(csv, 'lich.csv', 'text/csv')
-                }
-              }}
-            >
-              Xuất file lịch .csv
-            </Button>
-            <Button>Xuất file lịch .ical</Button>
-            <Button>Xuất lịch Google Calendar</Button>
-          </div>
+      {isLoading && <Loading />}
+      {calendar && <CalendarTableMemoized calendar={calendar} />}
+      {calendar && (
+        <div className="flex justify-center mt-4">
+          <Button
+            onClick={() => {
+              downloadFile(calendarToCsv(calendar, yearStudy), 'calendar.csv', 'text/csv')
+            }}
+          >
+            <DownloadIcon /> Tải lịch .csv
+          </Button>
         </div>
       )}
       {!vluAccount && <AddVLUAccountDialog open={addAccount} setOpen={setAddAccount} />}

@@ -34,9 +34,7 @@ export async function GET(req: NextRequest) {
     redirect: 'manual',
   })
 
-  console.log(loginResponse)
-
   if (loginResponse.status !== 302) return Response.json({ error: 'Failed to login to VLU' }, { status: 503 })
 
-  return Response.json({ cookie: vluCookie }, { status: 200 })
+  return Response.json(vluCookie, { status: 200 })
 }

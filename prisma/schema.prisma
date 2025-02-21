@@ -44,16 +44,27 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+
 model Calendar {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   userId      String  @db.ObjectId
   yearStudy   String  @db.String 
   termId      String  @db.String
   lichType    String  @db.String
-  details     String @db.String
+  details     CalendarType[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
  
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   }
+
+type CalendarType {
+  summary String
+  description String
+  location String
+  learningDate String
+  learningTime String
+  teacher String
+  weeks String[]
+}

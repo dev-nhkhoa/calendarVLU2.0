@@ -1,13 +1,14 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { TableCalendarType } from '@/types/calendar'
 import { Calendar } from '@prisma/client'
 
-export async function saveCalendar(userId: string, scheduleDetail: string, termId: string, yearStudy: string, lichType: string): Promise<Calendar> {
+export async function saveCalendar(userId: string, scheduleDetails: TableCalendarType[], termId: string, yearStudy: string, lichType: string): Promise<Calendar> {
   // check nếu đã có lịch học cùng kì cùng năm học thì update
   const calendar = await prisma.calendar.findFirst({ where: { user: { id: userId }, termId, yearStudy, lichType } })
 
-  if (calendar) return updateCalendar(calendar.id, scheduleDetail)
+  if (calendar) return updateCalendar(calendar.id, scheduleDetails)
 
   // lưu lịch mới vào db
   return await prisma.calendar.create({
@@ -16,15 +17,15 @@ export async function saveCalendar(userId: string, scheduleDetail: string, termI
       termId,
       yearStudy,
       lichType,
-      details: scheduleDetail,
+      details: scheduleDetails,
     },
   })
 }
 
-export async function updateCalendar(calendarId: string, details: string): Promise<Calendar> {
+export async function updateCalendar(calendarId: string, scheduleDetails: TableCalendarType[]): Promise<Calendar> {
   return await prisma.calendar.update({
     where: { id: calendarId },
-    data: { details },
+    data: { details: scheduleDetails },
   })
 }
 

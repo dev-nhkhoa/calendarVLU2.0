@@ -69,5 +69,5 @@ export async function DELETE(req: NextRequest) {
 
   if (!deletedAccount) return Response.json({ error: 'Failed to delete an account' }, { status: 404 })
 
-  return Response.json(deletedAccount, { status: 204 })
+  return Response.json(deletedAccount, { status: 200 })
 }

@@ -27,7 +27,7 @@ export default function VanLangLoginForm({ setOpen }: VanLangLoginFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const { vanlang_id, vanlang_password } = values
-      const checkVLUAccount = await fetch(`/api/check-vlu-account?id=${vanlang_id}&password=${vanlang_password}`, { method: 'GET' })
+      const checkVLUAccount = await fetch(`/api/accounts/vlu?id=${vanlang_id}&password=${vanlang_password}`, { method: 'GET' })
 
       if (!checkVLUAccount.ok) {
         alert('Đăng nhập thất bại, vui lòng kiểm tra lại thông tin')

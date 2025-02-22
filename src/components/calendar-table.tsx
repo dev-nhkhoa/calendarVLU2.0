@@ -5,54 +5,45 @@ import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown } from 'lucide-react'
+import { TableCalendarType } from '@/types/calendar'
 
-export interface Calendar {
-  id: string
-  name: string
-  date: string
-  time: string
-  location: string
-  teacher: string
-  weeks: number[]
-}
-
-const columns: ColumnDef<Calendar>[] = [
+const columns: ColumnDef<TableCalendarType>[] = [
   {
-    accessorKey: 'name',
+    accessorKey: 'summary',
     header: ({ column }) => {
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Subject
+          Tên môn học
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
   },
   {
-    accessorKey: 'date',
+    accessorKey: 'learningDate',
     header: ({ column }) => {
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Day
+          Ngày
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
   },
   {
-    accessorKey: 'time',
-    header: 'Time',
+    accessorKey: 'learningTime',
+    header: 'Giờ học',
   },
   {
     accessorKey: 'location',
-    header: 'Location',
+    header: 'Phòng học',
   },
   {
     accessorKey: 'teacher',
     header: ({ column }) => {
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Teacher
+          Giảng viên
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -60,7 +51,7 @@ const columns: ColumnDef<Calendar>[] = [
   },
   {
     accessorKey: 'weeks',
-    header: 'Weeks',
+    header: 'Tuần học',
     cell: ({ row }) => {
       const weeks = row.getValue('weeks') as number[]
       return <span>{weeks.join(', ')}</span>
@@ -68,11 +59,11 @@ const columns: ColumnDef<Calendar>[] = [
   },
 ]
 
-export function CalendarTable({ calendar }: { calendar: Calendar }) {
+export function CalendarTable({ calendar }: { calendar: TableCalendarType[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({
-    data: Object.values(calendar),
+    data: calendar,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -106,7 +97,7 @@ export function CalendarTable({ calendar }: { calendar: Calendar }) {
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                Không có dữ liệu!
               </TableCell>
             </TableRow>
           )}

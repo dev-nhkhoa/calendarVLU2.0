@@ -1,5 +1,5 @@
 import { vluLoginURL } from '@/lib/urls'
-import { createFormData, getVluCookie } from '@/lib/vlu'
+import { createFormData, getVluCookie } from '@/actions/vlu'
 import { NextRequest } from 'next/server'
 
 /**

@@ -1,7 +1,7 @@
 'use server'
 
-import { getUserByEmail, updateAccount } from '@/actions/auth'
-import { auth } from '@/auth'
+import { getAccount, updateAccount } from '@/actions/auth'
+import { NextRequest } from 'next/server'
 
 /**
  * Handles the POST request to update the VLU cookie.
@@ -9,33 +9,27 @@ import { auth } from '@/auth'
  * @export
  * @return {*}
  */
-export async function POST() {
-  const checkAuth = await auth()
+export async function POST(req: NextRequest) {
+  const { accountId } = await req.json()
 
-  if (!checkAuth) return Response.json({ error: 'Unauthorized!' }, { status: 401 })
+  if (!accountId) return Response.json({ error: 'MissingAccountId!' }, { status: 400 })
 
-  const email = checkAuth?.user?.email
+  const account = await getAccount(accountId)
 
-  if (!email) return Response.json({ error: 'Missing Email!' }, { status: 400 })
+  if (!account) return Response.json({ error: 'Account not found!' }, { status: 404 })
 
-  const user = await getUserByEmail(email)
+  if (account.provider != 'vanLang') return Response.json({ error: 'Account is not VLU!' }, { status: 400 })
 
-  if (!user) return Response.json({ error: 'User not found!' }, { status: 404 })
-
-  const vluAccount = user.accounts.find((account) => account.provider === 'vanLang')
-
-  if (!vluAccount) return Response.json({ error: 'VLU account not found!' }, { status: 404 })
-
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/accounts/vlu?id=${vluAccount?.student_id}&password=${vluAccount?.password}`)
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/accounts/vlu?id=${account?.student_id}&password=${account?.password}`)
 
   if (!response.ok) return Response.json({ error: 'Failed to fetch VLU' }, { status: 500 })
 
   const newCookie = await response.json()
 
   // update cookie to account
-  const updatedCookie = await updateAccount(vluAccount.id, { access_token: newCookie })
+  const updatedCookie = await updateAccount(account.id, { access_token: newCookie })
 
   if (!updatedCookie) return new Response('Failed to update cookie', { status: 500 })
 
-  return Response.json(newCookie, { status: 201 })
+  return Response.json(updatedCookie.access_token, { status: 201 })
 }

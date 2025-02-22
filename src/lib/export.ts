@@ -1,5 +1,11 @@
 import { Parser } from 'json2csv'
 
+// TODO: Thêm các giá trị mặc định cho năm học khác để có thể tải được lịch cho tất cả năm học khả dụng
+
+// TODO: Cần add thông thông báo lỗi để dễ dàng fix
+
+// TODO: Xử lý giờ cho lịch thi
+
 const defaultDateOfWeek: Record<string, [string, string]> = {
   '2023-2024': ['04/09/2023', '10/09/2023'], // Giá trị đầu tiên là thứ 2, cuối cùng là chủ nhật
   '2024-2025': ['02/09/2024', '08/09/2024'], // Đã sửa ngày bắt đầu cho năm học 2024-2025

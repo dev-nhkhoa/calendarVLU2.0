@@ -2,7 +2,7 @@
 
 import { useApp } from '@/app-provider'
 import AddVLUAccountDialog from '@/components/add-vlu-account-dialog'
-import { Calendar, CalendarTable } from '@/components/calendar-table'
+import { CalendarTable } from '@/components/calendar-table'
 import { Button } from '@/components/ui/button'
 import { getCurrentTermID, getCurrentYearStudy, TermID } from '@/lib/calendar'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
@@ -10,57 +10,51 @@ import { toast } from 'react-toastify'
 import Loading from '@/components/loading'
 import { calendarToCsv, downloadFile } from '@/lib/export'
 import { DownloadIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
+import { TableCalendarType } from '@/types/calendar'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
+
   const currentYear = new Date().getFullYear()
+  const currentLichType = 'lichHoc'
   const currentYearStudy = useMemo(() => getCurrentYearStudy(), [])
   const currentTermID = useMemo(() => getCurrentTermID(), [])
-  const currentLichType = 'lichHoc'
 
   const [termId, setTermId] = useState<string>(currentTermID)
   const [yearStudy, setYearStudy] = useState<string>(currentYearStudy)
   const [lichType, setLichType] = useState<string>(currentLichType)
 
-  const [calendar, setCalendar] = useState<Calendar | undefined>(undefined)
+  const [calendar, setCalendar] = useState<TableCalendarType[] | undefined>(undefined)
 
   const [addAccount, setAddAccount] = useState(false) // State để mở dialog thêm tài khoản
   const [isLoading, setIsLoading] = useState(false) // Thêm state isLoading
 
   const vluAccount = accounts.find((account) => account.provider === 'vanLang')
 
-  if (!vluAccount) toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
+  if (!vluAccount) {
+    toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
+    redirect('/settings')
+  }
 
-  console.log(yearStudy)
-
-  const getCalendar = useCallback(
-    async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
-      return await fetch(`/api/calendar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cookie: currentCookie,
-          userId: userId,
-          lichType,
-          termId,
-          yearStudy,
-        }),
-      })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentLichType, currentTermID, currentYearStudy], // Thêm currentLichType vào dependencies
-  )
+  const getCalendar = useCallback(async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
+    return await fetch(`/api/calendars?cookie=${currentCookie}&userId=${userId}&yearStudy=${yearStudy}&termId=${termId}&lichType=${lichType}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }, [])
 
   const handleRefreshCookie = useCallback(async () => {
     try {
-      const response = await fetch('/api/linked-accounts/new-cookie', {
+      const response = await fetch('/api/accounts/vlu/cookie', {
         method: 'POST',
         body: JSON.stringify({ accountId: vluAccount?.id }),
       })
 
       if (!response.ok) throw new Error('Không thể làm mới cookie')
 
-      const { cookie } = await response.json()
+      const cookie = await response.json()
+
       return cookie
     } catch (error) {
       toast.error('Lỗi làm mới phiên đăng nhập: ' + error)
@@ -70,6 +64,7 @@ export default function ConvertPage() {
 
   const MAX_RETRY = 3 // Số lần thử lại tối đa
 
+  // Logic: Call API về server để lấy lịch học, nếu cookie account đã hết hạn thì sẽ call API để update cookie mới cho account và thử lại để lấy lịch.
   const handleFetchSchedule = useCallback(
     async (currentCookie: string, retryCount = 0, yearStudy = currentYearStudy, termId = currentTermID, lichType = currentLichType) => {
       if (!vluAccount || retryCount > MAX_RETRY) {
@@ -89,8 +84,10 @@ export default function ConvertPage() {
         const response = await getCalendar(currentCookie, vluAccount.userId, yearStudy, termId, lichType)
 
         // Xử lý trường hợp cookie hết hạn
-        if (response.status === 501) {
+
+        if (response.status == 401) {
           const newCookie = await handleRefreshCookie()
+
           if (newCookie) {
             // Thử lại với cookie mới
             return handleFetchSchedule(newCookie, retryCount + 1)
@@ -103,7 +100,7 @@ export default function ConvertPage() {
 
         // Xử lý dữ liệu thành công
         const data = await response.json()
-        setCalendar(JSON.parse(data.details))
+        setCalendar(data.details)
       } catch (error) {
         if (error) {
           toast.error(`Lỗi khi tải lịch: ${error}`)

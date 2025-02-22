@@ -24,7 +24,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function fetchAccounts() {
-      const response = await fetch(`/api/linked-accounts?email=${session?.user?.email}`, {
+      const response = await fetch(`/api/accounts?email=${session?.user?.email}`, {
         method: 'GET',
       })
 

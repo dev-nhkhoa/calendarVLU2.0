@@ -1,5 +1,5 @@
-import { getCalendar, saveCalendar } from '@/actions/calendar'
-import { formatRawCalendar, getCurrentTermID, getCurrentYearStudy, LICH } from '@/lib/calendar'
+import { formatRawCalendar, getCalendar, saveCalendar } from '@/actions/calendar'
+import { getCurrentTermID, getCurrentYearStudy, LICH } from '@/lib/calendar'
 import { vluHomeURL } from '@/lib/urls'
 import { TableCalendarType } from '@/types/calendar'
 import { Calendar } from '@prisma/client'
@@ -19,7 +19,7 @@ import { NextRequest } from 'next/server'
  * // Failure response: { "error": "Cookie Expired!" }, { status: 401 }
  */
 
-export async function GET(req: NextRequest): Promise<Calendar[] | Response> {
+export async function GET(req: NextRequest) {
   // eslint-disable-next-line prefer-const
   let { cookie, userId, termId, yearStudy, lichType } = Object.fromEntries(new URL(req.url).searchParams)
 
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest): Promise<Calendar[] | Response> {
 
   if (response.status != 200 || !response.ok) return Response.json({ error: 'Cookie Expired!' }, { status: 401 })
 
-  const formattedCalendar: TableCalendarType[] | null = formatRawCalendar(await response.text())
+  const formattedCalendar: TableCalendarType[] | null = await formatRawCalendar(await response.text())
 
   if (!formattedCalendar) return Response.json({ error: 'Failed when converting calendars' }, { status: 503 })
 

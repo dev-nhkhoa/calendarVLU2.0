@@ -2,12 +2,12 @@
 
 import { useApp } from '@/app-provider'
 import { CalendarTable } from '@/components/calendar-table'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { calendarToCsv, downloadFile } from '@/lib/export'
-import { DownloadIcon } from 'lucide-react'
+// import { calendarToCsv, downloadFile } from '@/lib/export'
+// import { DownloadIcon } from 'lucide-react'
 import { TableCalendarType } from '@/types/calendar'
 import { redirect } from 'next/navigation'
 import Loading from '@/components/loading'
@@ -116,7 +116,7 @@ export default function ConvertPage() {
       </div>
       {isLoading && <Loading />}
       {calendar && <CalendarTableMemoized calendar={calendar} />}
-      {calendar && (
+      {/* {calendar && (
         <div className="flex justify-center mt-4">
           <Button
             onClick={() => {
@@ -126,7 +126,7 @@ export default function ConvertPage() {
             <DownloadIcon /> Tải lịch .csv
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

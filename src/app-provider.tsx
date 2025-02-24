@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react'
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
 import { useAccountStore } from './store/use-account'
 import { Account } from '@prisma/client'
+import { redirect } from 'next/navigation'
+import { toast } from 'react-toastify'
 
 interface AppContextType {
   user: User | null
@@ -24,19 +26,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function fetchAccounts() {
-      const response = await fetch(`/api/accounts?email=${session?.user?.email}`, {
-        method: 'GET',
-      })
+      const response = await fetch(`/api/accounts?email=${session?.user?.email}`, { method: 'GET' })
 
       if (!response.ok) {
-        console.error('Failed to fetch linked accounts')
-        return
+        console.error('Failed to fetch linked accounts, please login again!')
+        toast.error('Failed to fetch linked accounts, please login again!')
+        setTimeout(() => redirect('/auth/sign-in'), 1000)
       }
 
       setAccounts(await response.json())
     }
-    if (session) {
-      setUser(session.user || null)
+    if (session?.user) {
+      setUser(session?.user)
       fetchAccounts()
     }
   }, [session, setAccounts])

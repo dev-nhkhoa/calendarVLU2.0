@@ -17,18 +17,17 @@ export async function formatRawCalendar(rawCalendar: string): Promise<TableCalen
     rows.forEach((row) => {
       const cells = row.querySelectorAll('td')
 
+      const summary = cells[2]?.textContent
+      const description = cells[7]?.textContent && cells[8]?.textContent ? cells[7].textContent + ' ' + cells[8].textContent : null
+      const location = cells[7]?.textContent
+      const learningDate = cells[5]?.textContent
+      const learningTime = cells[6]?.textContent
+      const teacher = cells[8]?.textContent
       const weeks = cells[9]?.textContent?.split(',').map((week) => week.trim()) ?? []
 
-      // TODO: xử lý để tìm các trường hợp không có tuần học, sẽ loại bỏ ra khỏi calendar
-      calendars.push({
-        summary: cells[2]?.textContent ?? '', // done
-        description: cells[7]?.textContent + ' ' + cells[8]?.textContent,
-        location: cells[7]?.textContent ?? '', // done
-        learningDate: cells[5]?.textContent ?? '',
-        learningTime: cells[6]?.textContent ?? '',
-        teacher: cells[8]?.textContent ?? '', // done
-        weeks: weeks ?? [],
-      })
+      if (!summary || !description || !location || !learningDate || !learningTime || !teacher) return
+
+      calendars.push({ summary, description, location, learningDate, learningTime, teacher, weeks })
     })
     return calendars
   } catch (error) {

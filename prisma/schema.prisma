@@ -60,11 +60,11 @@ model Calendar {
   }
 
 type CalendarType {
-  summary String
-  description String
-  location String
-  learningDate String
-  learningTime String
-  teacher String
+  summary String?
+  description String?
+  location String?
+  learningDate String?
+  learningTime String?
+  teacher String?
   weeks String[]
 }

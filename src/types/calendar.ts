@@ -1,10 +1,10 @@
 interface TableCalendarType {
-  summary: string
-  description: string
-  location: string
-  learningDate: string
-  learningTime: string
-  teacher: string
+  summary: string | null
+  description: string | null
+  location: string | null
+  learningDate: string | null
+  learningTime: string | null
+  teacher: string | null
   weeks: string[]
 }
 

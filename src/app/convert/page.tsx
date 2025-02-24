@@ -1,137 +1,90 @@
 'use client'
 
 import { useApp } from '@/app-provider'
-import AddVLUAccountDialog from '@/components/add-vlu-account-dialog'
 import { CalendarTable } from '@/components/calendar-table'
 import { Button } from '@/components/ui/button'
-import { getCurrentTermID, getCurrentYearStudy, TermID } from '@/lib/calendar'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
+import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import Loading from '@/components/loading'
 import { calendarToCsv, downloadFile } from '@/lib/export'
 import { DownloadIcon } from 'lucide-react'
-import { redirect } from 'next/navigation'
 import { TableCalendarType } from '@/types/calendar'
+import { redirect } from 'next/navigation'
+import Loading from '@/components/loading'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
 
-  const currentYear = new Date().getFullYear()
-  const currentLichType = 'lichHoc'
-  const currentYearStudy = useMemo(() => getCurrentYearStudy(), [])
-  const currentTermID = useMemo(() => getCurrentTermID(), [])
+  const vluAccount = accounts.find((account) => account.provider == 'vanLang')
 
-  const [termId, setTermId] = useState<string>(currentTermID)
-  const [yearStudy, setYearStudy] = useState<string>(currentYearStudy)
-  const [lichType, setLichType] = useState<string>(currentLichType)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const currentYear = new Date().getFullYear()
+
+  const [termId, setTermId] = useState<string>(getCurrentTermID())
+  const [yearStudy, setYearStudy] = useState<string>(getCurrentYearStudy())
+  const [lichType, setLichType] = useState<string>('lichHoc')
 
   const [calendar, setCalendar] = useState<TableCalendarType[] | undefined>(undefined)
 
-  const [addAccount, setAddAccount] = useState(false) // State để mở dialog thêm tài khoản
-  const [isLoading, setIsLoading] = useState(false) // Thêm state isLoading
-
-  const vluAccount = accounts.find((account) => account.provider === 'vanLang')
-
-  if (!vluAccount) {
-    toast.error('Vui lòng liên kết tài khoản VLU để xem thời khóa biểu!')
-    redirect('/settings')
-  }
-
-  const getCalendar = useCallback(async (currentCookie: string, userId: string, yearStudy: string, termId: string, lichType: string) => {
-    return await fetch(`/api/calendars?cookie=${currentCookie}&userId=${userId}&yearStudy=${yearStudy}&termId=${termId}&lichType=${lichType}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-  }, [])
-
-  const handleRefreshCookie = useCallback(async () => {
-    try {
-      const response = await fetch('/api/accounts/vlu/cookie', {
-        method: 'POST',
-        body: JSON.stringify({ accountId: vluAccount?.id }),
-      })
-
-      if (!response.ok) throw new Error('Không thể làm mới cookie')
-
-      const cookie = await response.json()
-
-      return cookie
-    } catch (error) {
-      toast.error('Lỗi làm mới phiên đăng nhập: ' + error)
-      return null
-    }
-  }, [vluAccount?.id])
-
-  const MAX_RETRY = 3 // Số lần thử lại tối đa
-
-  // Logic: Call API về server để lấy lịch học, nếu cookie account đã hết hạn thì sẽ call API để update cookie mới cho account và thử lại để lấy lịch.
-  const handleFetchSchedule = useCallback(
-    async (currentCookie: string, retryCount = 0, yearStudy = currentYearStudy, termId = currentTermID, lichType = currentLichType) => {
-      if (!vluAccount || retryCount > MAX_RETRY) {
-        setIsLoading(false)
-        return
-      }
-
-      if (retryCount == MAX_RETRY) {
-        toast.error('Đã thử quá số lần cho phép, không thể tải lịch!')
-        return
-      }
-
-      setIsLoading(true)
-
-      try {
-        // Thực hiện request lấy lịch
-        const response = await getCalendar(currentCookie, vluAccount.userId, yearStudy, termId, lichType)
-
-        // Xử lý trường hợp cookie hết hạn
-
-        if (response.status == 401) {
-          const newCookie = await handleRefreshCookie()
-
-          if (newCookie) {
-            // Thử lại với cookie mới
-            return handleFetchSchedule(newCookie, retryCount + 1)
-          }
-          return
-        }
-
-        // Xử lý lỗi HTTP
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-
-        // Xử lý dữ liệu thành công
-        const data = await response.json()
-        setCalendar(data.details)
-      } catch (error) {
-        if (error) {
-          toast.error(`Lỗi khi tải lịch: ${error}`)
-          return
-        }
-
-        // Tự động thử lại sau 2s nếu còn lượt
-        if (retryCount < MAX_RETRY) {
-          setTimeout(() => {
-            handleFetchSchedule(currentCookie, retryCount + 1)
-          }, 1000)
-        }
-      } finally {
-        setIsLoading(false) // Kết thúc tất cả lần thử, tắt loading
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentTermID, currentYearStudy, getCalendar, handleRefreshCookie],
-  )
-
   const CalendarTableMemoized = React.memo(CalendarTable)
 
+  // redirect to home if no accounts
   useEffect(() => {
-    // Kích hoạt fetch ban đầu
-    if (vluAccount?.access_token) handleFetchSchedule(vluAccount.access_token)
+    if (!vluAccount) {
+      toast.error('Vui lòng thêm tài khoản VLU')
 
-    return () => {
-      setCalendar(undefined)
+      setTimeout(() => {
+        redirect('/settings')
+      }, 1500)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vluAccount?.access_token, vluAccount?.userId, getCalendar, handleRefreshCookie])
+  }, [vluAccount])
+
+  const refreshUserCookie = useCallback(async () => {
+    const response = await fetch(`/api/accounts/vlu/cookie`, { method: 'POST', body: JSON.stringify({ accountId: vluAccount?.id }) })
+
+    if (!response.ok) {
+      toast.error('Có lỗi xảy ra khi cập nhật cookie')
+      return
+    }
+
+    return await response.json()
+  }, [vluAccount?.id])
+
+  const maxAttemp = 3
+
+  // fetch calendar
+  const getCalendar = useCallback(
+    async (cookie: string, attemp: number) => {
+      setCalendar(undefined)
+      setIsLoading(true)
+      const response = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&userId=${vluAccount?.userId}&cookie=${cookie}`, { method: 'GET' })
+
+      if (response.status == 401) {
+        toast.error('Cookie đã hết hạn, đang cập nhật lại...')
+        if (attemp >= maxAttemp) {
+          toast.error('Có lỗi xảy ra khi cập nhật cookie')
+          setIsLoading(false)
+          return
+        }
+        return getCalendar(await refreshUserCookie(), attemp + 1)
+      }
+      setIsLoading(false)
+      return await response.json()
+    },
+    [lichType, refreshUserCookie, termId, vluAccount?.userId, yearStudy],
+  )
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!vluAccount) return
+
+      const calendar = await getCalendar(vluAccount.access_token as string, 1)
+      setCalendar(calendar.details)
+    }
+
+    fetchData()
+  }, [getCalendar, vluAccount, vluAccount?.access_token])
 
   return (
     <div className="flex container mx-auto py-10 flex-col items-center">
@@ -159,19 +112,6 @@ export default function ConvertPage() {
             <option value={getCurrentYearStudy(currentYear + 2)}>{getCurrentYearStudy(currentYear + 2)}</option>
             <option value={getCurrentYearStudy(currentYear + 3)}>{getCurrentYearStudy(currentYear + 3)}</option>
           </select>
-
-          <Button
-            className="h-full"
-            onClick={() => {
-              setCalendar(undefined)
-
-              if (vluAccount?.access_token) {
-                handleFetchSchedule(vluAccount.access_token, 0, yearStudy, termId as TermID, lichType)
-              }
-            }}
-          >
-            Lấy lịch
-          </Button>
         </div>
       </div>
       {isLoading && <Loading />}
@@ -187,7 +127,6 @@ export default function ConvertPage() {
           </Button>
         </div>
       )}
-      {!vluAccount && <AddVLUAccountDialog open={addAccount} setOpen={setAddAccount} />}
     </div>
   )
 }

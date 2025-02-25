@@ -15,9 +15,7 @@ type calendarJson = {
 
 export function getMondayDate(yearStudy: string, week: number) {
   // Kiểm tra xem yearStudy có tồn tại trong defaultDateOfWeek không
-  if (!defaultDateOfWeek[yearStudy]) {
-    throw new Error('Year study not found')
-  }
+  if (!defaultDateOfWeek[yearStudy]) throw new Error('Year study not found')
 
   // Lấy ngày thứ 2 đầu tiên của năm học
   const firstMonday = defaultDateOfWeek[yearStudy][0]
@@ -62,10 +60,12 @@ const dayOfWeek: Record<string, number> = {
 
 // Lấy ngày chính xác từ ngày thứ 2 và tên ngày trong tuần
 export function getExactDate(monday: string, day: string) {
+  const formatedDay = day.trim()
+  if (!dayOfWeek[formatedDay]) throw new Error('Invalid day of week')
   const [dayM, monthM, yearM] = monday.split('/').map(Number)
   const mondayDate = new Date(yearM, monthM - 1, dayM)
   const targetDate = new Date(mondayDate)
-  const dayNumber = dayOfWeek[day] || 0
+  const dayNumber = dayOfWeek[formatedDay]
   targetDate.setDate(mondayDate.getDate() + dayNumber - 1)
   return `${String(targetDate.getDate()).padStart(2, '0')}/${String(targetDate.getMonth() + 1).padStart(2, '0')}/${targetDate.getFullYear()}`
 }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowUpDown } from 'lucide-react'
 import { TableCalendarType } from '@/types/calendar'
 
-const columns: ColumnDef<TableCalendarType>[] = [
+const lichHocColumns: ColumnDef<TableCalendarType>[] = [
   {
     accessorKey: 'summary',
     header: ({ column }) => {
@@ -59,12 +59,45 @@ const columns: ColumnDef<TableCalendarType>[] = [
   },
 ]
 
-export function CalendarTable({ calendar }: { calendar: TableCalendarType[] }) {
+const lichThiColumns: ColumnDef<TableCalendarType>[] = [
+  {
+    accessorKey: 'summary',
+    header: ({ column }) => {
+      return (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          Tên môn học
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: 'learningDate',
+    header: ({ column }) => {
+      return (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+          Ngày thi
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: 'learningTime',
+    header: 'Giờ thi',
+  },
+  {
+    accessorKey: 'location',
+    header: 'Phòng',
+  },
+]
+
+export function CalendarTable({ calendar, lichType }: { calendar: TableCalendarType[]; lichType: string }) {
   const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({
     data: calendar,
-    columns,
+    columns: lichType == 'lichHoc' ? lichHocColumns : lichThiColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
@@ -96,7 +129,7 @@ export function CalendarTable({ calendar }: { calendar: TableCalendarType[] }) {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={lichThiColumns.length} className="h-24 text-center">
                 Không có dữ liệu!
               </TableCell>
             </TableRow>

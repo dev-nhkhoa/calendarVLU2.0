@@ -1,27 +1,7 @@
+import { convertTime, defaultDateOfWeek } from '@/constants/calendar'
+import { TableCalendarType } from '@/types/calendar'
 import { Parser } from 'json2csv'
-
-// TODO: Thêm các giá trị mặc định cho năm học khác để có thể tải được lịch cho tất cả năm học khả dụng
-
-// TODO: Cần add thông thông báo lỗi để dễ dàng fix
-
-// TODO: Xử lý giờ cho lịch thi
-
-const defaultDateOfWeek: Record<string, [string, string]> = {
-  '2023-2024': ['04/09/2023', '10/09/2023'], // Giá trị đầu tiên là thứ 2, cuối cùng là chủ nhật
-  '2024-2025': ['02/09/2024', '08/09/2024'], // Đã sửa ngày bắt đầu cho năm học 2024-2025
-}
-
-const learningTime: Record<string, [string, string]> = {
-  '1 - 3': ['07:00:00 AM', '09:30:00 AM'],
-  '2 - 4': ['08:00:00 AM', '10:30:00 AM'],
-  '4 - 6': ['09:30:00 AM', '12:00:00 PM'],
-  '5 - 7': ['10:30:00 AM', '01:00:00 PM'],
-  '7 - 9': ['01:00:00 PM', '03:30:00 PM'],
-  '8 - 10': ['02:00:00 PM', '04:30:00 PM'],
-  '10 - 12': ['03:30:00 PM', '06:00:00 PM'],
-  '11 - 13': ['04:30:00 PM', '07:00:00 PM'],
-  '13 - 15': ['06:00:00 PM', '08:30:00 PM'],
-}
+import { toast } from 'react-toastify'
 
 type calendarJson = {
   Subject: string
@@ -63,6 +43,13 @@ export function getMondayDate(yearStudy: string, week: number) {
   return [formatDate(targetMonday), formatDate(targetSunday)]
 }
 
+function formatLichThiTime(time: string): string {
+  const [hour, minute] = time.split('g').map(Number)
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const hour12 = hour % 12 || 12
+  return `${hour12.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00 ${period}`
+}
+
 const dayOfWeek: Record<string, number> = {
   Hai: 1,
   Ba: 2,
@@ -83,44 +70,70 @@ export function getExactDate(monday: string, day: string) {
   return `${String(targetDate.getDate()).padStart(2, '0')}/${String(targetDate.getMonth() + 1).padStart(2, '0')}/${targetDate.getFullYear()}`
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function calendarToCsv(calendar: Record<string, any>, yearStudy: string): string {
+export function lichHocToCsv(calendars: TableCalendarType[], yearStudy: string): string {
   const events: calendarJson[] = []
 
-  for (const key in calendar) {
-    const subject = calendar[key]
-    const { name, date, time, location, teacher, weeks } = subject
+  calendars.map((calendar) => {
+    const { description, learningDate, learningTime, location, summary, weeks } = calendar
 
-    // Kiểm tra xem time có tồn tại trong learningTime không
-    if (!learningTime[time]) {
-      throw new Error(`Không tìm thấy khung giờ cho '${time}'`)
+    if (!learningTime || !learningDate || weeks.length == 0) {
+      toast.error('Lịch học không hợp lệ')
+      throw new Error('Lịch học không hợp lệ')
     }
 
-    // Lấy StartTime và EndTime từ learningTime
-    const [StartTime, EndTime] = learningTime[time]
+    weeks.forEach((week: string) => {
+      const [monday] = getMondayDate(yearStudy, parseInt(week))
+      const exactDate = getExactDate(monday, learningDate)
 
-    weeks.forEach((week: number) => {
-      const [monday] = getMondayDate(yearStudy, week)
-      const exactDate = getExactDate(monday, date)
-
-      // Định dạng lại ngày từ dd/mm/yyyy sang MM/DD/YYYY
       const [dd, mm, yyyy] = exactDate.split('/')
       const formattedDate = `${mm}/${dd}/${yyyy}`
 
-      // Tạo sự kiện
+      const [StartTime, EndTime] = convertTime[learningTime]
+
       const event: calendarJson = {
-        Subject: name,
-        StartDate: formattedDate, // Định dạng MM/DD/YYYY
+        Subject: summary || '',
+        StartDate: formattedDate,
         StartTime: StartTime,
-        EndDate: formattedDate, // Cùng ngày với StartDate
+        EndDate: formattedDate,
         EndTime: EndTime,
-        Description: `Giảng viên: ${teacher}`,
-        Location: location,
+        Description: description as string,
+        Location: location || '',
       }
 
       events.push(event)
     })
-  }
+  })
+
+  // Chuyển đổi sang CSV
+  const parser = new Parser({
+    fields: ['Subject', 'StartDate', 'StartTime', 'EndDate', 'EndTime', 'Location', 'Description'],
+  })
+  return parser.parse(events)
+}
+
+export function lichThiToCsv(calendars: TableCalendarType[]): string {
+  const events: calendarJson[] = []
+
+  calendars.map((calendar) => {
+    const { learningDate, location, summary, learningTime } = calendar
+
+    if (!learningDate || !learningTime) {
+      toast.error('Lịch thi không hợp lệ')
+      throw new Error('Lịch thi không hợp lệ')
+    }
+
+    const event: calendarJson = {
+      Subject: summary?.trim() || '',
+      StartDate: learningDate?.trim(),
+      StartTime: formatLichThiTime(learningTime),
+      EndDate: learningDate?.trim(),
+      EndTime: formatLichThiTime(learningTime),
+      Description: location?.trim(),
+      Location: location?.trim(),
+    }
+
+    events.push(event)
+  })
 
   // Chuyển đổi sang CSV
   const parser = new Parser({

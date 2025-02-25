@@ -2,12 +2,12 @@
 
 import { useApp } from '@/app-provider'
 import { CalendarTable } from '@/components/calendar-table'
-// import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-// import { calendarToCsv, downloadFile } from '@/lib/export'
-// import { DownloadIcon } from 'lucide-react'
+import { downloadFile, lichHocToCsv, lichThiToCsv } from '@/lib/export'
+import { DownloadIcon } from 'lucide-react'
 import { TableCalendarType } from '@/types/calendar'
 import { redirect } from 'next/navigation'
 import Loading from '@/components/loading'
@@ -115,18 +115,22 @@ export default function ConvertPage() {
         </div>
       </div>
       {isLoading && <Loading />}
-      {calendar && <CalendarTableMemoized calendar={calendar} />}
-      {/* {calendar && (
+      {calendar && <CalendarTableMemoized calendar={calendar} lichType={lichType} />}
+      {calendar && (
         <div className="flex justify-center mt-4">
           <Button
             onClick={() => {
-              downloadFile(calendarToCsv(calendar, yearStudy), 'calendar.csv', 'text/csv')
+              if (lichType == 'lichHoc') {
+                downloadFile(lichHocToCsv(calendar, yearStudy), `lichHoc-${termId}-${yearStudy}.csv`, 'text/csv')
+              } else {
+                downloadFile(lichThiToCsv(calendar), `lichThi-${termId}-${yearStudy}.csv`, 'text/csv')
+              }
             }}
           >
             <DownloadIcon /> Tải lịch .csv
           </Button>
         </div>
-      )} */}
+      )}
     </div>
   )
 }

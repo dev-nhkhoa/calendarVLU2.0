@@ -3,14 +3,15 @@
 import { useApp } from '@/app-provider'
 import { CalendarTable } from '@/components/calendar-table'
 import { Button } from '@/components/ui/button'
-import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
+import { convertAMPMto24, getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { downloadFile, lichHocToCsv, lichThiToCsv } from '@/lib/export'
+import { downloadFile, getExactDate, getMondayDate, lichHocToCsv, lichThiToCsv } from '@/lib/export'
 import { DownloadIcon } from 'lucide-react'
 import { TableCalendarType } from '@/types/calendar'
 import { redirect } from 'next/navigation'
 import Loading from '@/components/loading'
+import { convertTime } from '@/constants/calendar'
 
 export default function ConvertPage() {
   const { accounts } = useApp()
@@ -25,9 +26,129 @@ export default function ConvertPage() {
   const [yearStudy, setYearStudy] = useState<string>(getCurrentYearStudy())
   const [lichType, setLichType] = useState<string>('lichHoc')
 
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [currentStep, setCurrentStep] = useState<'init' | 'creating-calendar' | 'creating-events'>('init')
+
   const [calendar, setCalendar] = useState<TableCalendarType[] | undefined>(undefined)
 
   const CalendarTableMemoized = React.memo(CalendarTable)
+
+  async function sync2GoogleCalendar() {
+    setIsSyncing(true)
+    setCurrentStep('creating-calendar')
+
+    try {
+      // Step 1: Tạo calendar mới
+      const calendarName = lichType === 'lichHoc' ? `Lịch Học-${termId}-${yearStudy}` : `Lịch Thi-${termId}-${yearStudy}`
+
+      const calendarResponse = await fetch('/api/google/calendars', {
+        method: 'POST',
+        body: JSON.stringify({ calendarName }),
+      })
+
+      if (!calendarResponse.ok) {
+        throw new Error(await calendarResponse.text())
+      }
+
+      const createdCalendar = await calendarResponse.json()
+      toast.success(`Đã tạo calendar "${calendarName}"`)
+
+      toast.info('Đang tạo sự kiện, có thể mất vài phút...')
+
+      // Step 2: Tạo các events theo từng tuần
+      setCurrentStep('creating-events')
+      const events: unknown[] = []
+
+      for (const subject of calendar || []) {
+        const { summary, description, location, learningDate, learningTime, teacher, weeks } = subject
+
+        // Validate required fields
+        if (!learningDate || !learningTime || !weeks?.length) {
+          console.warn('Missing required fields for subject:', subject)
+          continue
+        }
+
+        // Lấy thông tin thời gian học
+        const formatedTime = convertTime[learningTime]
+        if (!formatedTime) {
+          console.warn('Invalid learning time:', learningTime)
+          continue
+        }
+
+        // Xử lý cho từng tuần
+        for (const week of weeks) {
+          try {
+            // Lấy ngày thứ 2 của tuần
+            const [mondayDate] = getMondayDate(yearStudy, Number(week))
+
+            // Chuyển đổi thành ngày học cụ thể
+            const exactDate = getExactDate(mondayDate, learningDate)
+
+            // Định dạng sang ISO 8601
+            const [day, month, year] = exactDate.split('/').map(Number)
+            const isoDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+
+            events.push({
+              calendarId: createdCalendar.id,
+              summary: summary || 'Không có tiêu đề',
+              location: location || 'Chưa xác định',
+              description: [description, `Giáo viên: ${teacher || 'Chưa cập nhật'}`, `Địa điểm: ${location || 'Chưa xác định'}`, `Tuần học: ${week}`].filter(Boolean).join('\n'),
+              start: {
+                dateTime: `${isoDate}T${convertAMPMto24(formatedTime[0])}+07:00`,
+                timeZone: 'Asia/Ho_Chi_Minh',
+              },
+              end: {
+                dateTime: `${isoDate}T${convertAMPMto24(formatedTime[1])}+07:00`,
+                timeZone: 'Asia/Ho_Chi_Minh',
+              },
+            })
+          } catch (error) {
+            console.error(`Lỗi khi xử lý tuần ${week}:`, error)
+          }
+        }
+      }
+
+      // Step 3: Gửi yêu cầu tạo events
+      const eventsResponse = await fetch('/api/google/calendars/events', {
+        method: 'POST',
+        body: JSON.stringify({ events }),
+      })
+
+      const result = await eventsResponse.json()
+
+      console.log(result)
+
+      if (!eventsResponse.ok) {
+        throw new Error(result.error || 'Lỗi không xác định')
+      }
+
+      // Xử lý kết quả
+      const successCount = result.successfulEvents?.length || 0
+      const errorCount = result.failedEvents?.length || 0
+
+      if (errorCount > 0) {
+        toast.success(`Thành công ${successCount} sự kiện, thất bại ${errorCount}`)
+      } else {
+        toast.success(`Đã tạo thành công ${successCount} sự kiện`)
+      }
+    } catch (error) {
+      console.error('Sync error:', error)
+      toast.error('Lỗi đồng bộ')
+    } finally {
+      setIsSyncing(false)
+      setCurrentStep('init')
+    }
+  }
+  const getButtonText = () => {
+    switch (currentStep) {
+      case 'creating-calendar':
+        return 'Đang tạo calendar...'
+      case 'creating-events':
+        return `Đang tạo sự kiện...`
+      default:
+        return 'Đồng bộ với Google Calendar'
+    }
+  }
 
   // redirect to home if no accounts
   useEffect(() => {
@@ -86,6 +207,8 @@ export default function ConvertPage() {
     fetchData()
   }, [getCalendar, vluAccount, vluAccount?.access_token])
 
+  console.log(convertAMPMto24(convertTime['10 - 12'][0]))
+
   return (
     <div className="flex container mx-auto py-10 flex-col items-center">
       <div className="flex justify-between w-full container mx-auto py-10">
@@ -128,6 +251,10 @@ export default function ConvertPage() {
             }}
           >
             <DownloadIcon /> Tải lịch .csv
+          </Button>
+          <Button onClick={sync2GoogleCalendar} disabled={isSyncing}>
+            {isSyncing && <Loading />}
+            {getButtonText()}
           </Button>
         </div>
       )}

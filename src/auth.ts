@@ -15,8 +15,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  callbacks: {
+    async jwt({ token, account }) {
+      if (account?.access_token) {
+        token.accessToken = account.access_token
+      }
+      return token
+    },
+    async session({ session, token }) {
+      session.sessionToken = token.accessToken as string
+      return session
+    },
+  },
   providers: [
-    Google({}),
+    Google({
+      authorization: {
+        params: {
+          scope: 'openid email profile https://www.googleapis.com/auth/calendar',
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    }),
     Credentials({
       credentials: {
         userEmail: {},

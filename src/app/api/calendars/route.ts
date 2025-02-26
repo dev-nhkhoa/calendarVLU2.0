@@ -21,6 +21,10 @@ export async function GET(req: NextRequest) {
   // eslint-disable-next-line prefer-const
   let { cookie, termId, yearStudy, lichType } = Object.fromEntries(new URL(req.url).searchParams)
 
+  if (!cookie) return Response.json({ error: 'Missing cookie' }, { status: 400 })
+
+  if (!lichType) return Response.json({ error: 'Missing lichType' }, { status: 400 })
+
   // if undefined, get current termId and yearStudy
   termId = termId ?? getCurrentTermID()
   yearStudy = yearStudy ?? getCurrentYearStudy()
@@ -31,7 +35,6 @@ export async function GET(req: NextRequest) {
     headers: { Cookie: cookie },
     redirect: 'manual',
   })
-
   if (response.status != 200 || !response.ok) return Response.json({ error: 'Cookie Expired!' }, { status: 401 })
 
   const formattedCalendar: CalendarType[] | null = await formatRawCalendar(await response.text(), yearStudy, lichType)

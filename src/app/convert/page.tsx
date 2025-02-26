@@ -15,6 +15,14 @@ import { downloadFile } from '@/lib/utils'
 export default function ConvertPage() {
   const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
 
+  useEffect(() => {
+    if (!vluAccount) {
+      toast.error('Vui lòng cập nhật tài khoản VLU để tiếp tục')
+    }
+  }, [vluAccount])
+
+  console.log(vluAccount)
+
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const currentYear = new Date().getFullYear()
@@ -132,12 +140,8 @@ export default function ConvertPage() {
       return
     }
 
-    const newCookie = await response.json()
-    setVluAccount(() => ({ id: vluAccount?.id as string, password: vluAccount?.password as string, cookie: newCookie }))
-
-    return newCookie
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vluAccount?.id, vluAccount?.password])
+    setVluAccount({ id: vluAccount?.id as string, password: vluAccount?.password as string, cookie: await response.json() })
+  }, [setVluAccount, vluAccount?.id, vluAccount?.password])
 
   const maxAttemp = 3
 
@@ -152,11 +156,12 @@ export default function ConvertPage() {
         if (response.status == 401) {
           toast.error('Cookie đã hết hạn, đang cập nhật lại...')
           if (attemp >= maxAttemp) {
-            toast.error('Có lỗi xảy ra khi cập nhật cookie')
+            toast.error('Có lỗi xảy ra khi cập nhật cookie', { autoClose: 5000 })
             setIsLoading(false)
             return
           }
-          return getCalendar(await refreshUserCookie(), attemp + 1)
+          await refreshUserCookie()
+          return getCalendar(vluAccount?.cookie as string, attemp + 1)
         }
         setIsLoading(false)
         return await response.json()
@@ -166,7 +171,8 @@ export default function ConvertPage() {
         setIsLoading(false)
       }
     },
-    [lichType, refreshUserCookie, termId, yearStudy],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lichType, termId, yearStudy],
   )
 
   useEffect(() => {

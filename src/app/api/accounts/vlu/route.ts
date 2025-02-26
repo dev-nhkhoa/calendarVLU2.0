@@ -1,4 +1,3 @@
-import { vluLoginURL } from '@/lib/urls'
 import { createFormData, getVluCookie } from '@/actions/vlu'
 import { NextRequest } from 'next/server'
 
@@ -27,7 +26,7 @@ export async function GET(req: NextRequest) {
   header.append('Cookie', vluCookie)
 
   // thanks to @PhucChiVas161 for the advice!
-  const loginResponse = await fetch(vluLoginURL, {
+  const loginResponse = await fetch(process.env.VLU_HOME_URL as string, {
     method: 'POST',
     headers: header,
     body: await createFormData(id, password),

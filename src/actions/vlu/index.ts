@@ -1,10 +1,8 @@
 'use server'
 
-import { vluURL } from '@/lib/urls'
-
 export async function getVluCookie(): Promise<string | undefined> {
   try {
-    const fetchVluServer = await fetch(vluURL)
+    const fetchVluServer = await fetch(process.env.VLU_URL as string)
     const loginCookie = fetchVluServer.headers.get('set-cookie')?.split(';')[0]
     return loginCookie
   } catch (error) {

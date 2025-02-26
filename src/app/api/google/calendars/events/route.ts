@@ -1,7 +1,7 @@
 import { getAccessToken } from '@/actions/google'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
-export async function GET(req: NextResponse) {
+export async function GET(req: NextRequest) {
   const accessToken = await getAccessToken()
 
   if (!accessToken) return Response.json({ error: 'Can not get account access Token!' }, { status: 401 })
@@ -58,7 +58,7 @@ interface FailedEvent {
 
 type ProcessingResult = { status: 'fulfilled'; value: GoogleEventResponse } | { status: 'rejected'; reason: FailedEvent }
 
-export async function POST(req: NextRequest): Promise<Response> {
+export async function POST(req: NextRequest) {
   const accessToken = await getAccessToken()
 
   if (!accessToken) {

@@ -9,7 +9,7 @@ const dayOfWeek: Record<string, number> = {
   Năm: 4,
   Sáu: 5,
   Bảy: 6,
-  'Chủ nhật': 7,
+  'Chủ Nhật': 7,
 }
 
 export function cn(...inputs: ClassValue[]) {
@@ -67,7 +67,10 @@ export function getMondayDate(yearStudy: string, week: number) {
 // Lấy ngày chính xác từ ngày thứ 2 và tên ngày trong tuần
 export function getExactDate(monday: string, day: string) {
   const formatedDay = day.trim()
-  if (!dayOfWeek[formatedDay]) throw new Error('Invalid day of week')
+  if (!dayOfWeek[formatedDay]) {
+    console.log(formatedDay)
+    throw new Error('Invalid day of week')
+  }
   const [dayM, monthM, yearM] = monday.split('/').map(Number)
   const mondayDate = new Date(yearM, monthM - 1, dayM)
   const targetDate = new Date(mondayDate)

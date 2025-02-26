@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   header.append('Cookie', vluCookie)
 
   // thanks to @PhucChiVas161 for the advice!
-  const loginResponse = await fetch(process.env.VLU_HOME_URL as string, {
+  const loginResponse = await fetch(process.env.VLU_LOGIN_URL as string, {
     method: 'POST',
     headers: header,
     body: await createFormData(id, password),
@@ -34,6 +34,8 @@ export async function GET(req: NextRequest) {
   })
 
   if (loginResponse.status !== 302) return Response.json({ error: 'Failed to login to VLU' }, { status: 503 })
+
+  console.log(await loginResponse)
 
   return Response.json(vluCookie, { status: 200 })
 }

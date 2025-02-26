@@ -68,7 +68,6 @@ export function getMondayDate(yearStudy: string, week: number) {
 export function getExactDate(monday: string, day: string) {
   const formatedDay = day.trim()
   if (!dayOfWeek[formatedDay]) {
-    console.log(formatedDay)
     throw new Error('Invalid day of week')
   }
   const [dayM, monthM, yearM] = monday.split('/').map(Number)

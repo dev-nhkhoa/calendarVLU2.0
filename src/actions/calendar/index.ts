@@ -1,33 +1,67 @@
 'use server'
 
+import { convertTime } from '@/constants/calendar'
 import { prisma } from '@/lib/prisma'
-import { TableCalendarType } from '@/types/calendar'
+import { convertGTime, formatText, getExactDate, getMondayDate } from '@/lib/utils'
+import { CalendarType } from '@/types/calendar'
 import { Calendar } from '@prisma/client'
 import { JSDOM } from 'jsdom'
 
-export async function formatRawCalendar(rawCalendar: string): Promise<TableCalendarType[] | null> {
+export async function formatRawCalendar(rawCalendar: string, yearStudy: string, lichType: string): Promise<CalendarType[] | null> {
   try {
-    const dom = new JSDOM(rawCalendar.trim())
+    const dom = new JSDOM(formatText(rawCalendar))
     const document = dom.window.document
 
     const rows = document.querySelectorAll('tbody tr')
 
-    const calendars: TableCalendarType[] = []
+    const calendars: CalendarType[] = []
 
     rows.forEach((row) => {
       const cells = row.querySelectorAll('td')
+      if (cells.length <= 1) return
 
-      const summary = cells[2]?.textContent
-      const description = cells[7]?.textContent && cells[8]?.textContent ? cells[7].textContent + ' ' + cells[8].textContent : null
-      const location = cells[7]?.textContent
-      const learningDate = cells[5]?.textContent
-      const learningTime = cells[6]?.textContent
-      const teacher = cells[8]?.textContent
-      const weeks = cells[9]?.textContent?.split(',').map((week) => week.trim()) ?? []
+      if (lichType === 'lichThi') {
+        const startDate = formatText(cells[5]?.textContent)
+        const startTime = convertGTime(formatText(cells[6]?.textContent) as string)
+        const endDate = formatText(cells[5]?.textContent)
+        const endTime = convertGTime(formatText(cells[6]?.textContent) as string)
+        const summary = formatText(cells[2]?.textContent)
+        const location = formatText(cells[7]?.textContent)
+        const description = formatText(cells[4]?.textContent) + ' - ' + formatText(cells[1]?.textContent) + ' - ' + formatText(cells[10]?.textContent)
 
-      if (!summary || !description || !location || !learningDate || !learningTime || !teacher) return
+        if (!startDate || !startTime || !endDate || !endTime || !summary || !location) return
 
-      calendars.push({ summary, description, location, learningDate, learningTime, teacher, weeks })
+        calendars.push({ summary, location, startDate, endDate, startTime, endTime, description })
+        return
+      } else if (lichType === 'lichHoc') {
+        const weeks = cells[9]?.textContent?.split(',').map((week) => week.trim()) ?? []
+
+        const learningTime = formatText(cells[6]?.textContent)
+        const learningDate = formatText(cells[5]?.textContent)
+        const summary = formatText(cells[2]?.textContent)
+        const description = cells[7]?.textContent && cells[8]?.textContent ? formatText(cells[7].textContent + ' ' + cells[8].textContent) : null
+        const location = formatText(cells[7]?.textContent)
+        const teacher = formatText(cells[8]?.textContent)
+
+        if (!weeks || !learningTime || !learningDate || !summary || !description || !location || !teacher) return
+
+        weeks.forEach((week) => {
+          const monday = getMondayDate(yearStudy, parseInt(week))[0]
+          const exactDate = getExactDate(monday, learningDate)
+
+          const startDate = exactDate
+          const endDate = exactDate
+          const convertedTime = convertTime[learningTime]
+          const startTime = convertedTime[0]
+          const endTime = convertedTime[1]
+
+          if (!summary || !description || !location || !learningDate || !learningTime || !teacher) return
+
+          calendars.push({ summary, description, location, startDate, endDate, startTime, endTime })
+        })
+      } else {
+        throw new Error('Invalid lichType')
+      }
     })
     return calendars
   } catch (error) {
@@ -38,32 +72,4 @@ export async function formatRawCalendar(rawCalendar: string): Promise<TableCalen
 
 export async function getCalendar(userId: string, termId: string, yearStudy: string, lichType: string): Promise<Calendar | null> {
   return await prisma.calendar.findFirst({ where: { user: { id: userId }, termId, yearStudy, lichType } })
-}
-
-export async function saveCalendar(userId: string, scheduleDetails: TableCalendarType[], termId: string, yearStudy: string, lichType: string): Promise<Calendar> {
-  // check nếu đã có lịch học cùng kì cùng năm học thì update vì chưa có logic tự động update lịch mới. Tạm thời sẽ để như vậy.
-  const calendar = await prisma.calendar.findFirst({ where: { user: { id: userId }, termId, yearStudy, lichType } })
-
-  if (calendar) return updateCalendar(calendar.id, scheduleDetails)
-
-  return await prisma.calendar.create({
-    data: {
-      user: { connect: { id: userId } },
-      termId,
-      yearStudy,
-      lichType,
-      details: scheduleDetails,
-    },
-  })
-}
-
-export async function updateCalendar(calendarId: string, scheduleDetails: TableCalendarType[]): Promise<Calendar> {
-  return await prisma.calendar.update({
-    where: { id: calendarId },
-    data: { details: scheduleDetails },
-  })
-}
-
-export async function deleteCalendars(userId: string) {
-  return await prisma.calendar.deleteMany({ where: { userId } })
 }

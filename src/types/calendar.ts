@@ -16,7 +16,7 @@ interface CalendarType {
   endDate: string
   startTime: string
   endTime: string
-  private: boolean | null
+  private?: boolean | null
 }
 
 export type { TableCalendarType, CalendarType }

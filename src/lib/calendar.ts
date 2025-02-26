@@ -1,3 +1,6 @@
+import { CalendarType } from '@/types/calendar'
+import { Parser } from 'json2csv'
+
 export enum TermID {
   HK01 = 'HK01',
   HK02 = 'HK02',
@@ -20,33 +23,25 @@ export function getCurrentYearStudy(currentYear = new Date().getFullYear()): str
   return `${currentYear - 1}-${currentYear}`
 }
 
-export function convertAMPMto24(timeString: string): string | null {
-  // Sử dụng regex để tách các thành phần thời gian
-  const timeRegex = /^(\d{2}):(\d{2}):(\d{2})\s(AM|PM)$/i
-  const matches = timeString.match(timeRegex)
+export function calendar2Csv(calendars: CalendarType[]): string {
+  // Chuyển đổi sang CSV
+  const events: unknown[] = []
 
-  console.log(matches)
+  calendars.forEach((calendar) => {
+    const { startDate, endDate, startTime, endTime, summary, description, location } = calendar
+    events.push({
+      Subject: summary,
+      StartDate: startDate,
+      StartTime: startTime,
+      EndDate: endDate,
+      EndTime: endTime,
+      Location: location,
+      Description: description,
+    })
+  })
+  const parser = new Parser({
+    fields: ['Subject', 'StartDate', 'StartTime', 'EndDate', 'EndTime', 'Location', 'Description'],
+  })
 
-  // Kiểm tra định dạng đầu vào
-  if (!matches) return null
-
-  // Trích xuất các thành phần
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, hours, minutes, seconds, period] = matches
-
-  // Chuyển đổi giờ sang số
-  let hourInt = parseInt(hours, 10)
-
-  // Xử lý chuyển đổi AM/PM
-  if (period.toUpperCase() === 'PM' && hourInt !== 12) {
-    hourInt += 12
-  } else if (period.toUpperCase() === 'AM' && hourInt === 12) {
-    hourInt = 0
-  }
-
-  // Định dạng lại giờ với 2 chữ số
-  const formattedHour = hourInt.toString().padStart(2, '0')
-
-  // Trả về chuỗi thời gian mới
-  return `${formattedHour}:${minutes}:${seconds}`
+  return parser.parse(events)
 }

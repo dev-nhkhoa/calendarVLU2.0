@@ -9,17 +9,14 @@ import { Mail } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import VanLangLoginForm from './van-lang-login-form'
 import { useApp } from '@/app-provider'
+import useLocalStorage from '@/hooks/local-storage'
+import { vluAccountType } from '@/types/account'
+import { toast } from 'react-toastify'
 
 export default function SettingsForm() {
-  const { user, accounts, deleteAccount } = useApp()
+  const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
+  const { user } = useApp()
   const [open, setOpen] = useState(false)
-
-  async function handleUnlinkAccount(account: string) {
-    if (account === 'vanLang') {
-      const vanLangAccount = accounts.find((acc) => acc.provider === account)
-      if (vanLangAccount) deleteAccount(vanLangAccount)
-    }
-  }
 
   if (!user) return <div>Không tìm thấy USER!</div>
 
@@ -51,11 +48,7 @@ export default function SettingsForm() {
               <Mail className="h-6 w-6" />
               <span>Van Lang Account</span>
             </div>
-            {accounts.filter((account) => account.provider == 'vanLang').length > 0 ? (
-              <Button variant="outline" onClick={() => handleUnlinkAccount('vanLang')}>
-                Unlink
-              </Button>
-            ) : (
+            {vluAccount == null ? (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button>Link Account</Button>
@@ -65,9 +58,19 @@ export default function SettingsForm() {
                     <DialogTitle>Liên kết tài khoản VLU ( online.vlu.edu.vn )</DialogTitle>
                     <DialogDescription>Liên kết tài khoản VLU của bạn nhằm mục đích trích xuất lịch học, lịch thi của bạn.</DialogDescription>
                   </DialogHeader>
-                  <VanLangLoginForm setOpen={setOpen} />
+                  <VanLangLoginForm setOpen={setOpen} setVluAccount={setVluAccount} />
                 </DialogContent>
               </Dialog>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setVluAccount(() => null)
+                  toast.success('Gỡ tài khoản VLU thành công!')
+                }}
+              >
+                Unlink
+              </Button>
             )}
           </div>
         </CardContent>

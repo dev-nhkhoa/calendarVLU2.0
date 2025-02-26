@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { ArrowUpDown } from 'lucide-react'
-import { TableCalendarType } from '@/types/calendar'
+import { CalendarType } from '@/types/calendar'
 
-const lichHocColumns: ColumnDef<TableCalendarType>[] = [
+const lichHocColumns: ColumnDef<CalendarType>[] = [
   {
     accessorKey: 'summary',
     header: ({ column }) => {
@@ -20,7 +20,7 @@ const lichHocColumns: ColumnDef<TableCalendarType>[] = [
     },
   },
   {
-    accessorKey: 'learningDate',
+    accessorKey: 'startDate',
     header: ({ column }) => {
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -31,35 +31,20 @@ const lichHocColumns: ColumnDef<TableCalendarType>[] = [
     },
   },
   {
-    accessorKey: 'learningTime',
-    header: 'Giờ học',
+    accessorKey: 'startTime',
+    header: 'Từ',
+  },
+  {
+    accessorKey: 'endTime',
+    header: 'Đến',
   },
   {
     accessorKey: 'location',
     header: 'Phòng học',
   },
-  {
-    accessorKey: 'teacher',
-    header: ({ column }) => {
-      return (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Giảng viên
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-  },
-  {
-    accessorKey: 'weeks',
-    header: 'Tuần học',
-    cell: ({ row }) => {
-      const weeks = row.getValue('weeks') as number[]
-      return <span>{weeks.join(', ')}</span>
-    },
-  },
 ]
 
-const lichThiColumns: ColumnDef<TableCalendarType>[] = [
+const lichThiColumns: ColumnDef<CalendarType>[] = [
   {
     accessorKey: 'summary',
     header: ({ column }) => {
@@ -72,7 +57,7 @@ const lichThiColumns: ColumnDef<TableCalendarType>[] = [
     },
   },
   {
-    accessorKey: 'learningDate',
+    accessorKey: 'startDate',
     header: ({ column }) => {
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -83,7 +68,7 @@ const lichThiColumns: ColumnDef<TableCalendarType>[] = [
     },
   },
   {
-    accessorKey: 'learningTime',
+    accessorKey: 'startTime',
     header: 'Giờ thi',
   },
   {
@@ -92,7 +77,7 @@ const lichThiColumns: ColumnDef<TableCalendarType>[] = [
   },
 ]
 
-export function CalendarTable({ calendar, lichType }: { calendar: TableCalendarType[]; lichType: string }) {
+export function CalendarTable({ calendar, lichType }: { calendar: CalendarType[]; lichType: string }) {
   const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({

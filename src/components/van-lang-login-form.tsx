@@ -6,8 +6,8 @@ import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useApp } from '@/app-provider'
-import { Account } from '@prisma/client'
+import { vluAccountType } from '@/types/account'
+import { toast } from 'react-toastify'
 
 const formSchema = z.object({
   vanlang_id: z.string(),
@@ -16,10 +16,12 @@ const formSchema = z.object({
 
 interface VanLangLoginFormProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setVluAccount: React.Dispatch<React.SetStateAction<vluAccountType | null>>
 }
 
-export default function VanLangLoginForm({ setOpen }: VanLangLoginFormProps) {
-  const { user, addAccount } = useApp()
+//TODO: Thay đổi lưu account Van Lang vào local storage thay vì vào DB
+
+export default function VanLangLoginForm({ setOpen, setVluAccount }: VanLangLoginFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   })
@@ -36,21 +38,13 @@ export default function VanLangLoginForm({ setOpen }: VanLangLoginFormProps) {
 
       const cookie = (await checkVLUAccount.json()) as string
 
-      const newAccount = {
-        student_id: vanlang_id,
-        password: vanlang_password,
-        access_token: cookie,
-        type: 'credential',
-        provider: 'vanLang',
-        providerAccountId: '',
-      } as Account
-
-      addAccount(newAccount, user?.email as string)
+      setVluAccount({ id: vanlang_id, password: vanlang_password, cookie })
+      toast.success('Đăng nhập thành công!')
 
       form.reset()
     } catch (error) {
       console.error('Form submission error', error)
-      alert('Đã có lỗi xảy ra, vui lòng thử lại sau')
+      toast.error('Đã có lỗi xảy ra, vui lòng thử lại sau')
     } finally {
       setOpen(false)
     }

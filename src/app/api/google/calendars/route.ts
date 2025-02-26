@@ -4,8 +4,6 @@ import { NextRequest } from 'next/server'
 export async function GET() {
   const accessToken = await getAccessToken()
 
-  console.log(accessToken)
-
   if (!accessToken) return Response.json({ error: 'Lỗi khi lấy access token' }, { status: 401 })
 
   const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', { method: 'GET', headers: { Authorization: `Bearer ${accessToken}` } })

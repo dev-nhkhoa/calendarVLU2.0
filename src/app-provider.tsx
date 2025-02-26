@@ -3,18 +3,13 @@
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
-import { useAccountStore } from './store/use-account'
-import { Account } from '@prisma/client'
-import { redirect } from 'next/navigation'
-import { toast } from 'react-toastify'
+import useLocalStorage from './hooks/local-storage'
+import { vluAccountType } from './types/account'
 
 interface AppContextType {
   user: User | null
-  accounts: Account[]
-  setUser: (user: User | null) => void
-  setAccounts: (accounts: Account[]) => void
-  addAccount: (account: Account, userId: string) => void
-  deleteAccount: (account: Account) => void
+  vluAccount: vluAccountType | null
+  setVluAccount: (vluAccount: vluAccountType | null) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -22,27 +17,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession()
   const [user, setUser] = useState<User | null>(null)
-  const { accounts, setAccounts, addAccount, deleteAccount } = useAccountStore()
+  const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
 
   useEffect(() => {
-    async function fetchAccounts() {
-      const response = await fetch(`/api/accounts?email=${session?.user?.email}`, { method: 'GET' })
-
-      if (!response.ok) {
-        console.error('Failed to fetch linked accounts, please login again!')
-        toast.error('Failed to fetch linked accounts, please login again!')
-        setTimeout(() => redirect('/auth/sign-in'), 1000)
-      }
-
-      setAccounts(await response.json())
-    }
     if (session?.user) {
       setUser(session?.user)
-      fetchAccounts()
     }
-  }, [session, setAccounts])
+  }, [session])
 
-  return <AppContext.Provider value={{ user, accounts, setUser, setAccounts, addAccount, deleteAccount }}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ user, vluAccount, setVluAccount }}>{children}</AppContext.Provider>
 }
 
 export function useApp() {

@@ -23,7 +23,6 @@ export async function getAccessToken(): Promise<string | null> {
 
   // if response is not ok, need to refress token
   if (!response.ok) {
-    console.log('cookie expired, need to refresh token')
     const fetchRefreshToken = await refreshAccessToken(googleAccount.refresh_token as string)
     const updatedAccessToken = await updateAccessToken(googleAccount.id, fetchRefreshToken.access_token)
 

@@ -8,20 +8,16 @@ import { toast } from 'react-toastify'
 import { DownloadIcon } from 'lucide-react'
 import { CalendarType } from '@/types/calendar'
 import Loading from '@/components/loading'
-import useLocalStorage from '@/hooks/local-storage'
-import { vluAccountType } from '@/types/account'
 import { downloadFile } from '@/lib/utils'
+import { useApp } from '@/app-provider'
+import { redirect } from 'next/navigation'
 
 export default function ConvertPage() {
-  const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
+  const { vluAccount, setVluAccount } = useApp()
 
   useEffect(() => {
-    if (!vluAccount) {
-      toast.error('Vui lòng cập nhật tài khoản VLU để tiếp tục')
-    }
+    if (!vluAccount) redirect('/')
   }, [vluAccount])
-
-  console.log(vluAccount)
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -58,7 +54,7 @@ export default function ConvertPage() {
       const createdCalendar = await calendarResponse.json()
       toast.success(`Đã tạo calendar "${calendarName}"`)
 
-      toast.info('Đang tạo sự kiện, có thể mất vài phút...')
+      toast.info('Đang tạo sự kiện, có thể mất vài phút...', { autoClose: false })
 
       // Step 2: Tạo các events theo từng tuần
       setCurrentStep('creating-events')
@@ -108,9 +104,9 @@ export default function ConvertPage() {
       const errorCount = result.failedEvents?.length || 0
 
       if (errorCount > 0) {
-        toast.success(`Thành công ${successCount} sự kiện, thất bại ${errorCount}`)
+        toast.success(`Thành công ${successCount} sự kiện, thất bại ${errorCount}`, { autoClose: false })
       } else {
-        toast.success(`Đã tạo thành công ${successCount} sự kiện`)
+        toast.success(`Đã tạo thành công ${successCount} sự kiện`, { autoClose: false })
       }
     } catch (error) {
       console.error('Sync error:', error)
@@ -141,9 +137,9 @@ export default function ConvertPage() {
     }
 
     setVluAccount({ id: vluAccount?.id as string, password: vluAccount?.password as string, cookie: await response.json() })
-  }, [setVluAccount, vluAccount?.id, vluAccount?.password])
+  }, [vluAccount, setVluAccount])
 
-  const maxAttemp = 3
+  const maxAttemp = 2
 
   // fetch calendar
   const getCalendar = useCallback(
@@ -151,20 +147,27 @@ export default function ConvertPage() {
       try {
         setCalendar(undefined)
         setIsLoading(true)
+
         const response = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${cookie}`, { method: 'GET' })
 
+        const data = await response.json()
+
+        if (response.ok) {
+          setIsLoading(false)
+          toast.success('Đã lấy lịch thành công!')
+          return data
+        }
+        //TODO: tối ưu hiển thị toast (toast đang hiển thị sai)
         if (response.status == 401) {
-          toast.error('Cookie đã hết hạn, đang cập nhật lại...')
           if (attemp >= maxAttemp) {
-            toast.error('Có lỗi xảy ra khi cập nhật cookie', { autoClose: 5000 })
+            toast.error('Có lỗi xảy ra khi cập nhật cookie', { autoClose: false })
             setIsLoading(false)
             return
           }
+          toast.error('Cookie đã hết hạn, đang cập nhật lại...')
           await refreshUserCookie()
           return getCalendar(vluAccount?.cookie as string, attemp + 1)
         }
-        setIsLoading(false)
-        return await response.json()
       } catch (error) {
         console.error('Failed to fetch calendar:', error)
         toast.error('Có lỗi xảy ra khi lấy lịch')
@@ -172,7 +175,7 @@ export default function ConvertPage() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lichType, termId, yearStudy],
+    [lichType, termId, yearStudy, vluAccount],
   )
 
   useEffect(() => {

@@ -7,8 +7,8 @@ import Footer from '@/components/footer'
 import HeaderPage from '@/components/header'
 import Image from 'next/image'
 
-import SecureVLU from '!/public/idea-images/secure-vlu-information.jpg'
-import FetchInformationProcess from '!/public/idea-images/fetch-information-process.jpg'
+import SecureVLU from '~/public/idea-images/secure-vlu-information.jpg'
+import FetchInformationProcess from '~/public/idea-images/fetch-information-process.jpg'
 
 export default function LandingPage() {
   return (

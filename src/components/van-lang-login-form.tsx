@@ -16,7 +16,7 @@ const formSchema = z.object({
 
 interface VanLangLoginFormProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setVluAccount: React.Dispatch<React.SetStateAction<vluAccountType | null>>
+  setVluAccount: (vluAccount: vluAccountType | null) => void
 }
 
 //TODO: Thay đổi lưu account Van Lang vào local storage thay vì vào DB

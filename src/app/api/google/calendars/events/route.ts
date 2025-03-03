@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Invalid events format' }, { status: 400 })
     }
 
-    const RATE_LIMIT_DELAY = 100
+    const RATE_LIMIT_DELAY = 300
     const MAX_RETRIES = 3
     const BATCH_SIZE = 10
 

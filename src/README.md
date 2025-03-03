@@ -22,9 +22,9 @@ Dùng auth.js Credentials & Google Provider
 
 - Tính năng:
 
-  - Export lịch dạng .csv, .ical
+  - Export lịch dạng .csv (done), .ical
 
-  - Tự động chuyển lịch sang google calendar (User cần liên kết tài khoản Google để dùng tính năng này)
+  - Tự động chuyển lịch sang google calendar (User cần liên kết tài khoản Google để dùng tính năng này) (done)
 
   - Tự động chuyển lịch sang outlook ( cần liên kết tài khoản microsoft trường cấp ) cần trường xét duyệt.
 
@@ -34,6 +34,6 @@ Dùng auth.js Credentials & Google Provider
 
 - Chuyển đổi theme, light/dark mode
 
-- Hiển thị thông tin tài khoản, các tài khoản liên kết như Google, VLU, Microsoft,...
+- Hiển thị thông tin tài khoản, các tài khoản liên kết như Google, Microsoft,...
 
 - Các thứ khác,...

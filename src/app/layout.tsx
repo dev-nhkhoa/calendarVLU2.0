@@ -6,6 +6,8 @@ import { SessionProvider } from 'next-auth/react'
 import { AppProvider } from '@/app-provider'
 import { ToastContainer } from 'react-toastify'
 
+import { Analytics } from '@vercel/analytics/next'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ToastContainer autoClose={1500} />
           </AppProvider>
         </SessionProvider>
+        <Analytics />
       </body>
     </html>
   )

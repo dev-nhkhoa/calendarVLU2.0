@@ -9,13 +9,10 @@ import { Mail } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import VanLangLoginForm from './van-lang-login-form'
 import { useApp } from '@/app-provider'
-import useLocalStorage from '@/hooks/local-storage'
-import { vluAccountType } from '@/types/account'
 import { toast } from 'react-toastify'
 
 export default function SettingsForm() {
-  const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
-  const { user } = useApp()
+  const { user, vluAccount, setVluAccount } = useApp()
   const [open, setOpen] = useState(false)
 
   if (!user) return <div>Không tìm thấy USER!</div>
@@ -65,7 +62,7 @@ export default function SettingsForm() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setVluAccount(() => null)
+                  setVluAccount(null)
                   toast.success('Gỡ tài khoản VLU thành công!')
                 }}
               >

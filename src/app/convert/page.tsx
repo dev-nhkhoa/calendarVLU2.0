@@ -3,44 +3,186 @@
 import { CalendarTable } from '@/components/calendar-table'
 import { Button } from '@/components/ui/button'
 import { calendar2Csv, getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { toast } from 'react-toastify'
-import { DownloadIcon } from 'lucide-react'
+import { DownloadIcon, CalendarIcon, SearchIcon } from 'lucide-react'
 import { CalendarType } from '@/types/calendar'
 import Loading from '@/components/loading'
 import { downloadFile } from '@/lib/utils'
 import { useApp } from '@/app-provider'
-import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export default function ConvertPage() {
   const { vluAccount, setVluAccount } = useApp()
-
-  useEffect(() => {
-    if (!vluAccount) redirect('/')
-  }, [vluAccount])
-
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-
-  const currentYear = new Date().getFullYear()
-
-  const [termId, setTermId] = useState<string>(getCurrentTermID())
-  const [yearStudy, setYearStudy] = useState<string>(getCurrentYearStudy())
-  const [lichType, setLichType] = useState<string>('lichHoc')
-
+  const [isLoading, setIsLoading] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
-  const [currentStep, setCurrentStep] = useState<'init' | 'creating-calendar' | 'creating-events'>('init')
-
+  const [currentStep, setCurrentStep] = useState('init')
   const [calendar, setCalendar] = useState<CalendarType[] | undefined>(undefined)
+  const initialLoadDone = useRef(false)
 
+  // Form state
+  const currentYear = new Date().getFullYear()
+  const [formState, setFormState] = useState({
+    termId: getCurrentTermID(),
+    yearStudy: getCurrentYearStudy(),
+    lichType: 'lichHoc',
+  })
+
+  const { termId, yearStudy, lichType } = formState
+
+  // Memoize CalendarTable component
   const CalendarTableMemoized = React.memo(CalendarTable)
 
-  async function sync2GoogleCalendar() {
+  // Check if user has linked VLU account
+  useEffect(() => {
+    if (!vluAccount) {
+      toast.error('Vui lòng liên kết tài khoản VLU để sử dụng tính năng này', { autoClose: 3000 })
+    } else if (!initialLoadDone.current) {
+      // Tự động fetch lịch khi trang được tải lần đầu và người dùng đã liên kết tài khoản
+      initialLoadDone.current = true
+      fetchCalendar()
+    }
+  }, [vluAccount]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormState((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // Refresh user cookie
+  const refreshUserCookie = useCallback(async () => {
+    if (!vluAccount?.id || !vluAccount?.password) return false
+
+    try {
+      const response = await fetch(`/api/accounts/vlu/cookie`, {
+        method: 'POST',
+        body: JSON.stringify({ id: vluAccount.id, password: vluAccount.password }),
+      })
+
+      if (!response.ok) {
+        toast.error('Có lỗi xảy ra khi cập nhật cookie')
+        console.error('Failed to refresh cookie:', await response.text())
+        return false
+      }
+
+      const newCookie = await response.json()
+      setVluAccount({
+        id: vluAccount.id,
+        password: vluAccount.password,
+        cookie: newCookie,
+      })
+      return true
+    } catch (error) {
+      console.error('Cookie refresh error:', error)
+      toast.error('Lỗi kết nối khi cập nhật phiên đăng nhập')
+      return false
+    }
+  }, [vluAccount, setVluAccount])
+
+  // Fetch calendar data
+  const fetchCalendar = useCallback(async () => {
+    if (!vluAccount?.cookie) {
+      toast.error('Không tìm thấy phiên đăng nhập')
+      return
+    }
+
+    try {
+      setCalendar(undefined)
+      setIsLoading(true)
+
+      const response = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${vluAccount.cookie}`, { method: 'GET' })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setCalendar(data)
+        setIsLoading(false)
+        toast.success('Đã lấy lịch thành công!')
+        return
+      }
+
+      // Handle expired cookie - try only once
+      if (response.status === 401) {
+        toast.warning('Phiên đăng nhập đã hết hạn, đang cập nhật lại...')
+
+        const refreshSuccess = await refreshUserCookie()
+        if (refreshSuccess && vluAccount?.cookie) {
+          // Retry with new cookie - only once
+          const retryResponse = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${vluAccount.cookie}`, { method: 'GET' })
+
+          if (retryResponse.ok) {
+            const retryData = await retryResponse.json()
+            setCalendar(retryData)
+            setIsLoading(false)
+            toast.success('Đã lấy lịch thành công!')
+            return
+          } else {
+            throw new Error('Không thể lấy lịch sau khi cập nhật phiên đăng nhập')
+          }
+        } else {
+          throw new Error('Không thể cập nhật phiên đăng nhập')
+        }
+      }
+
+      // Handle other errors
+      throw new Error(data.message || 'Lỗi không xác định')
+    } catch (error) {
+      console.error('Calendar fetch error:', error)
+      toast.error('Có lỗi xảy ra khi lấy lịch. Vui lòng thử lại sau.')
+      setIsLoading(false)
+    }
+  }, [lichType, termId, yearStudy, refreshUserCookie, vluAccount])
+
+  // Format event dates for Google Calendar
+  const formatEventDate = (dateStr: string, timeStr: string) => {
+    const [day, month, year] = dateStr.split('/').map(Number)
+    const isoDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+    return `${isoDate}T${timeStr}+07:00`
+  }
+
+  // Prepare events for Google Calendar
+  const prepareCalendarEvents = (calendarId: string, calendarData: CalendarType[]) => {
+    return calendarData
+      .map((item) => {
+        const { summary, description, location, endTime, startDate, startTime } = item
+
+        try {
+          return {
+            calendarId,
+            summary: summary || 'Không có tiêu đề',
+            location: location || 'Chưa xác định',
+            description: description || 'Không có mô tả',
+            start: {
+              dateTime: formatEventDate(startDate, startTime),
+              timeZone: 'Asia/Ho_Chi_Minh',
+            },
+            end: {
+              dateTime: formatEventDate(startDate, endTime),
+              timeZone: 'Asia/Ho_Chi_Minh',
+            },
+          }
+        } catch (error) {
+          console.error('Event formatting error:', error)
+          return null
+        }
+      })
+      .filter(Boolean) // Remove any null entries
+  }
+
+  // Sync to Google Calendar
+  const syncToGoogleCalendar = async () => {
+    if (!calendar || calendar.length === 0) {
+      toast.error('Không có dữ liệu lịch để đồng bộ')
+      return
+    }
+
     setIsSyncing(true)
     setCurrentStep('creating-calendar')
 
     try {
-      // Step 1: Tạo calendar mới
-      const calendarName = lichType === 'lichHoc' ? `Lịch Học-${termId}-${yearStudy}` : `Lịch Thi-${termId}-${yearStudy}`
+      // Step 1: Create new calendar
+      const calendarName = `${lichType === 'lichHoc' ? 'Lịch Học' : 'Lịch Thi'}-${termId}-${yearStudy}`
 
       const calendarResponse = await fetch('/api/google/calendars', {
         method: 'POST',
@@ -53,41 +195,13 @@ export default function ConvertPage() {
 
       const createdCalendar = await calendarResponse.json()
       toast.success(`Đã tạo calendar "${calendarName}"`)
-
       toast.info('Đang tạo sự kiện, có thể mất vài phút...', { autoClose: false })
 
-      // Step 2: Tạo các events theo từng tuần
+      // Step 2: Create calendar events
       setCurrentStep('creating-events')
-      const events: unknown[] = []
+      const events = prepareCalendarEvents(createdCalendar.id, calendar)
 
-      for (const subject of calendar || []) {
-        const { summary, description, location, endTime, startDate, startTime } = subject
-
-        try {
-          // Định dạng sang ISO 8601
-          const [day, month, year] = startDate.split('/').map(Number)
-          const isoDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-
-          events.push({
-            calendarId: createdCalendar.id,
-            summary: summary || 'Không có tiêu đề',
-            location: location || 'Chưa xác định',
-            description: description || 'Không có mô tả',
-            start: {
-              dateTime: `${isoDate}T${startTime}+07:00`,
-              timeZone: 'Asia/Ho_Chi_Minh',
-            },
-            end: {
-              dateTime: `${isoDate}T${endTime}+07:00`,
-              timeZone: 'Asia/Ho_Chi_Minh',
-            },
-          })
-        } catch (error) {
-          console.error(`Lỗi khi xử lý`, error)
-        }
-      }
-
-      // Step 3: Gửi yêu cầu tạo events
+      // Step 3: Send request to create events
       const eventsResponse = await fetch('/api/google/calendars/events', {
         method: 'POST',
         body: JSON.stringify({ events }),
@@ -99,7 +213,7 @@ export default function ConvertPage() {
         throw new Error(result.error || 'Lỗi không xác định')
       }
 
-      // Xử lý kết quả
+      // Handle results
       const successCount = result.successfulEvents?.length || 0
       const errorCount = result.failedEvents?.length || 0
 
@@ -110,134 +224,105 @@ export default function ConvertPage() {
       }
     } catch (error) {
       console.error('Sync error:', error)
-      toast.error('Lỗi đồng bộ')
+      toast.error('Lỗi đồng bộ với Google Calendar')
     } finally {
       setIsSyncing(false)
       setCurrentStep('init')
     }
   }
-  const getButtonText = () => {
+
+  // Get sync button text based on current step
+  const getSyncButtonText = () => {
     switch (currentStep) {
       case 'creating-calendar':
         return 'Đang tạo calendar...'
       case 'creating-events':
-        return `Đang tạo sự kiện...`
+        return 'Đang tạo sự kiện...'
       default:
         return 'Đồng bộ với Google Calendar'
     }
   }
 
-  const refreshUserCookie = useCallback(async () => {
-    const response = await fetch(`/api/accounts/vlu/cookie`, { method: 'POST', body: JSON.stringify({ id: vluAccount?.id, password: vluAccount?.password }) })
+  // Handle CSV download
+  const handleDownloadCsv = () => {
+    if (!calendar) return
 
-    if (!response.ok) {
-      toast.error('Có lỗi xảy ra khi cập nhật cookie')
-      console.error('Failed to refresh cookie:', await response.text())
-      return
-    }
+    const filename = `${lichType === 'lichHoc' ? 'lichHoc' : 'lichThi'}-${termId}-${yearStudy}.csv`
+    downloadFile(calendar2Csv(calendar), filename, 'text/csv')
+  }
 
-    setVluAccount({ id: vluAccount?.id as string, password: vluAccount?.password as string, cookie: await response.json() })
-  }, [vluAccount, setVluAccount])
-
-  const maxAttemp = 2
-
-  // fetch calendar
-  const getCalendar = useCallback(
-    async (cookie: string, attemp: number) => {
-      try {
-        setCalendar(undefined)
-        setIsLoading(true)
-
-        const response = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${cookie}`, { method: 'GET' })
-
-        const data = await response.json()
-
-        if (response.ok) {
-          setIsLoading(false)
-          toast.success('Đã lấy lịch thành công!')
-          return data
-        }
-        //TODO: tối ưu hiển thị toast (toast đang hiển thị sai)
-        if (response.status == 401) {
-          if (attemp >= maxAttemp) {
-            toast.error('Có lỗi xảy ra khi cập nhật cookie', { autoClose: false })
-            setIsLoading(false)
-            return
-          }
-          toast.error('Cookie đã hết hạn, đang cập nhật lại...')
-          await refreshUserCookie()
-          return getCalendar(vluAccount?.cookie as string, attemp + 1)
-        }
-      } catch (error) {
-        console.error('Failed to fetch calendar:', error)
-        toast.error('Có lỗi xảy ra khi lấy lịch')
-        setIsLoading(false)
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [lichType, termId, yearStudy, vluAccount],
-  )
-
-  useEffect(() => {
-    async function fetchData() {
-      if (!vluAccount) return
-
-      const calendar = await getCalendar(vluAccount.cookie as string, 1)
-      setCalendar(calendar)
-    }
-
-    fetchData()
-  }, [getCalendar, vluAccount])
+  // Render login prompt if no VLU account
+  if (!vluAccount) {
+    return (
+      <div className="flex items-center justify-center w-full h-64">
+        <Button asChild>
+          <Link href="/settings">Liên kết tài khoản VLU</Link>
+        </Button>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex container mx-auto py-10 flex-col items-center">
-      <div className="flex justify-between w-full container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-8">Thời khóa biểu</h1>
+    <div className="container mx-auto px-4 py-6 md:py-10 flex flex-col items-center">
+      <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 w-full">Thời khóa biểu</h1>
 
-        <div className="flex gap-4 mb-4">
-          <select value={lichType} onChange={(e) => setLichType(e.target.value)} className="border p-2 rounded">
+      {/* Form controls - responsive layout */}
+      <div className="w-full flex flex-col md:flex-row gap-3 mb-6">
+        <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3">
+          <select name="lichType" value={lichType} onChange={handleInputChange} className="border rounded px-2 py-1 h-9 text-sm md:text-base">
             <option value="lichHoc">Lịch học</option>
             <option value="lichThi">Lịch thi</option>
           </select>
 
-          <select value={termId} onChange={(e) => setTermId(e.target.value)} className="border p-2 rounded">
+          <select name="termId" value={termId} onChange={handleInputChange} className="border rounded px-2 py-1 h-9 text-sm md:text-base">
             <option value="HK01">Học kỳ 1</option>
             <option value="HK02">Học kỳ 2</option>
             <option value="HK03">Học kỳ 3</option>
           </select>
 
-          <select value={yearStudy} onChange={(e) => setYearStudy(e.target.value)} className="border p-2 rounded">
-            <option value={getCurrentYearStudy(currentYear - 3)}>{getCurrentYearStudy(currentYear - 3)}</option>
-            <option value={getCurrentYearStudy(currentYear - 2)}>{getCurrentYearStudy(currentYear - 2)}</option>
-            <option value={getCurrentYearStudy(currentYear - 1)}>{getCurrentYearStudy(currentYear - 1)}</option>
-            <option value={getCurrentYearStudy(currentYear)}>{getCurrentYearStudy(currentYear)}</option>
-            <option value={getCurrentYearStudy(currentYear + 1)}>{getCurrentYearStudy(currentYear + 1)}</option>
-            <option value={getCurrentYearStudy(currentYear + 2)}>{getCurrentYearStudy(currentYear + 2)}</option>
-            <option value={getCurrentYearStudy(currentYear + 3)}>{getCurrentYearStudy(currentYear + 3)}</option>
+          <select name="yearStudy" value={yearStudy} onChange={handleInputChange} className="border rounded px-2 py-1 h-9 text-sm md:text-base col-span-2 md:col-span-1">
+            {[-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+              const yearValue = getCurrentYearStudy(currentYear + offset)
+              return (
+                <option key={yearValue} value={yearValue}>
+                  {yearValue}
+                </option>
+              )
+            })}
           </select>
         </div>
+
+        <Button onClick={fetchCalendar} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 h-9 px-3 md:px-4 mt-2 md:mt-0 text-sm md:text-base">
+          {isLoading ? <Loading /> : <SearchIcon className="mr-1 h-4 w-4" />}
+          Tìm Lịch
+        </Button>
       </div>
-      {isLoading && <Loading />}
-      {calendar && (
-        <div className="flex justify-between gap-4 mb-4">
-          <Button
-            onClick={() => {
-              if (lichType == 'lichHoc') {
-                downloadFile(calendar2Csv(calendar), `lichHoc-${termId}-${yearStudy}.csv`, 'text/csv')
-              } else {
-                downloadFile(calendar2Csv(calendar), `lichThi-${termId}-${yearStudy}.csv`, 'text/csv')
-              }
-            }}
-          >
-            <DownloadIcon /> Tải lịch .csv
+
+      {isLoading && (
+        <div className="w-full flex justify-center my-8">
+          <Loading />
+        </div>
+      )}
+
+      {calendar && !isLoading && (
+        <div className="flex flex-col sm:flex-row justify-between gap-3 mb-6 w-full">
+          <Button onClick={handleDownloadCsv} className="h-9 text-sm md:text-base">
+            <DownloadIcon className="mr-2 h-4 w-4" />
+            Tải lịch .csv
           </Button>
-          <Button onClick={sync2GoogleCalendar} disabled={isSyncing}>
-            {isSyncing && <Loading />}
-            {getButtonText()}
+
+          <Button onClick={syncToGoogleCalendar} disabled={isSyncing} className="h-9 text-sm md:text-base">
+            {isSyncing ? <Loading /> : <CalendarIcon className="mr-2 h-4 w-4" />}
+            {getSyncButtonText()}
           </Button>
         </div>
       )}
-      {calendar && <CalendarTableMemoized calendar={calendar} lichType={lichType} />}
+
+      {calendar && !isLoading && (
+        <div className="w-full overflow-x-auto">
+          <CalendarTableMemoized calendar={calendar} lichType={lichType} />
+        </div>
+      )}
     </div>
   )
 }

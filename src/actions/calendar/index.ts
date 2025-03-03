@@ -1,10 +1,8 @@
 'use server'
 
 import { convertTime } from '@/constants/calendar'
-import { prisma } from '@/lib/prisma'
 import { convertGTime, formatText, getExactDate, getMondayDate } from '@/lib/utils'
 import { CalendarType } from '@/types/calendar'
-import { Calendar } from '@prisma/client'
 import { JSDOM } from 'jsdom'
 
 export async function formatRawCalendar(rawCalendar: string, yearStudy: string, lichType: string): Promise<CalendarType[] | null> {
@@ -68,8 +66,4 @@ export async function formatRawCalendar(rawCalendar: string, yearStudy: string, 
     console.error(error)
     return null
   }
-}
-
-export async function getCalendar(userId: string, termId: string, yearStudy: string, lichType: string): Promise<Calendar | null> {
-  return await prisma.calendar.findFirst({ where: { user: { id: userId }, termId, yearStudy, lichType } })
 }

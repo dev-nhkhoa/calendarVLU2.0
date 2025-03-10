@@ -2,7 +2,7 @@ import { auth } from '@/auth'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const publicRoutes = ['/', '/auth/sign-in', '/auth/sign-up']
+const publicRoutes = ['/', '/auth/sign-in', '/auth/sign-up', '/auth/sign-out', '/privacy-policy']
 
 export async function middleware(request: NextRequest) {
   const session = await auth()

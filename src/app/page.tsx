@@ -101,6 +101,13 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+      <p className="text-center">
+        Xem{' '}
+        <Link href="/privacy-policy" className="text-blue-400 underline">
+          Chính sách bảo mật
+        </Link>{' '}
+        của chúng tôi để biết thêm thông tin về cách chúng tôi xử lý dữ liệu của bạn.
+      </p>
       <Footer />
     </div>
   )

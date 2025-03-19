@@ -101,7 +101,7 @@ export default function LandingPage() {
           </div>
         </section>
         <p className="text-center">
-          <Link href="/privacy-policy" className="underline">
+          <Link href="https://calen-vlu.nhkhoa.live/privacy-policy" className="underline">
             Chính sách bảo mật
           </Link>
         </p>

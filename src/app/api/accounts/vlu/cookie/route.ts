@@ -11,9 +11,17 @@ import { NextRequest } from 'next/server'
 export async function POST(req: NextRequest) {
   const { id, password } = await req.json()
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/accounts/vlu?id=${id}&password=${password}`)
+  // Get the base URL from the request headers
+  const protocol = req.headers.get('x-forwarded-proto') || 'http'
+  const host = req.headers.get('host')
+  const baseUrl = `${protocol}://${host}`
 
-  if (!response.ok) return Response.json({ error: 'Failed to fetch VLU' }, { status: 500 })
+  const response = await fetch(`${baseUrl}/api/accounts/vlu?id=${id}&password=${password}`)
+
+  if (!response.ok) {
+    console.error('Failed to fetch VLU cookie:', await response.text())
+    return Response.json({ error: 'Failed to fetch VLU' }, { status: 500 })
+  }
 
   const newCookie = await response.json()
 

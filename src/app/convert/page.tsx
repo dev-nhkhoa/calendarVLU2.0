@@ -52,31 +52,41 @@ export default function ConvertPage() {
 
   // Refresh user cookie
   const refreshUserCookie = useCallback(async () => {
-    if (!vluAccount?.id || !vluAccount?.password) return false
+    if (!vluAccount?.id || !vluAccount?.password) return null
 
     try {
       const response = await fetch(`/api/accounts/vlu/cookie`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ id: vluAccount.id, password: vluAccount.password }),
       })
 
       if (!response.ok) {
+        const errorText = await response.text()
         toast.error('Có lỗi xảy ra khi cập nhật cookie')
-        console.error('Failed to refresh cookie:', await response.text())
-        return false
+        console.error('Failed to refresh cookie:', errorText)
+        return null
       }
 
       const newCookie = await response.json()
-      setVluAccount({
+      
+      // Update the account with new cookie
+      const updatedAccount = {
         id: vluAccount.id,
         password: vluAccount.password,
         cookie: newCookie,
-      })
-      return true
+      }
+      
+      setVluAccount(updatedAccount)
+      
+      // Return the new cookie directly
+      return newCookie
     } catch (error) {
       console.error('Cookie refresh error:', error)
       toast.error('Lỗi kết nối khi cập nhật phiên đăng nhập')
-      return false
+      return null
     }
   }, [vluAccount, setVluAccount])
 
@@ -106,10 +116,10 @@ export default function ConvertPage() {
       if (response.status === 401) {
         toast.warning('Phiên đăng nhập đã hết hạn, đang cập nhật lại...')
 
-        const refreshSuccess = await refreshUserCookie()
-        if (refreshSuccess && vluAccount?.cookie) {
+        const newCookie = await refreshUserCookie()
+        if (newCookie) {
           // Retry with new cookie - only once
-          const retryResponse = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${vluAccount.cookie}`, { method: 'GET' })
+          const retryResponse = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${newCookie}`, { method: 'GET' })
 
           if (retryResponse.ok) {
             const retryData = await retryResponse.json()
@@ -118,7 +128,8 @@ export default function ConvertPage() {
             toast.success('Đã lấy lịch thành công!')
             return
           } else {
-            throw new Error('Không thể lấy lịch sau khi cập nhật phiên đăng nhập')
+            const retryError = await retryResponse.json()
+            throw new Error(`Không thể lấy lịch sau khi cập nhật phiên đăng nhập: ${retryError.error || 'Lỗi không xác định'}`)
           }
         } else {
           throw new Error('Không thể cập nhật phiên đăng nhập')

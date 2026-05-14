@@ -1,6 +1,7 @@
 'use server'
 
 import { NextRequest } from 'next/server'
+import { deprecatedVluPasswordFlowHeaders } from '@/services/deprecation'
 
 /**
  * Handles the POST request to update the VLU cookie.
@@ -20,10 +21,10 @@ export async function POST(req: NextRequest) {
 
   if (!response.ok) {
     console.error('Failed to fetch VLU cookie:', await response.text())
-    return Response.json({ error: 'Failed to fetch VLU' }, { status: 500 })
+    return Response.json({ error: 'Failed to fetch VLU' }, { status: 500, headers: deprecatedVluPasswordFlowHeaders })
   }
 
   const newCookie = await response.json()
 
-  return Response.json(newCookie, { status: 201 })
+  return Response.json(newCookie, { status: 201, headers: deprecatedVluPasswordFlowHeaders })
 }

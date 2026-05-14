@@ -1,4 +1,5 @@
 import { createFormData, getVluCookie } from '@/actions/vlu'
+import { deprecatedVluPasswordFlowHeaders } from '@/services/deprecation'
 import { NextRequest } from 'next/server'
 
 /**
@@ -16,10 +17,10 @@ import { NextRequest } from 'next/server'
 export async function GET(req: NextRequest) {
   const { id, password } = Object.fromEntries(new URL(req.url).searchParams)
 
-  if (!id || !password) return new Response('Missing id or password', { status: 400 })
+  if (!id || !password) return new Response('Missing id or password', { status: 400, headers: deprecatedVluPasswordFlowHeaders })
 
   const vluCookie = await getVluCookie()
-  if (!vluCookie) return Response.json({ error: 'Failed to fetch vlu cookie' }, { status: 503 })
+  if (!vluCookie) return Response.json({ error: 'Failed to fetch vlu cookie' }, { status: 503, headers: deprecatedVluPasswordFlowHeaders })
 
   // login to vlu
   const header = new Headers()
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     redirect: 'manual',
   })
 
-  if (loginResponse.status !== 302) return Response.json({ error: 'Failed to login to VLU' }, { status: 503 })
+  if (loginResponse.status !== 302) return Response.json({ error: 'Failed to login to VLU' }, { status: 503, headers: deprecatedVluPasswordFlowHeaders })
 
-  return Response.json(vluCookie, { status: 200 })
+  return Response.json(vluCookie, { status: 200, headers: deprecatedVluPasswordFlowHeaders })
 }

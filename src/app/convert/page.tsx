@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { calendar2Csv, getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { toast } from 'react-toastify'
-import { DownloadIcon, CalendarIcon, SearchIcon } from 'lucide-react'
+import { DownloadIcon, CalendarIcon, SearchIcon, Chrome } from 'lucide-react'
 import { CalendarType } from '@/types/calendar'
 import Loading from '@/components/loading'
 import { downloadFile } from '@/lib/utils'
@@ -31,27 +31,22 @@ export default function ConvertPage() {
 
   const { termId, yearStudy, lichType } = formState
 
-  // Memoize CalendarTable component
   const CalendarTableMemoized = React.memo(CalendarTable)
 
-  // Check if user has linked VLU account
   useEffect(() => {
     if (!vluAccount) {
       toast.error('Vui lòng liên kết tài khoản VLU để sử dụng tính năng này', { autoClose: 3000 })
     } else if (!initialLoadDone.current) {
-      // Tự động fetch lịch khi trang được tải lần đầu và người dùng đã liên kết tài khoản
       initialLoadDone.current = true
       fetchCalendar()
     }
   }, [vluAccount]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormState((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Refresh user cookie
   const refreshUserCookie = useCallback(async () => {
     if (!vluAccount?.id || !vluAccount?.password) return null
 
@@ -72,17 +67,14 @@ export default function ConvertPage() {
       }
 
       const newCookie = await response.json()
-      
-      // Update the account with new cookie
+
       const updatedAccount = {
         id: vluAccount.id,
         password: vluAccount.password,
         cookie: newCookie,
       }
-      
+
       setVluAccount(updatedAccount)
-      
-      // Return the new cookie directly
       return newCookie
     } catch (error) {
       console.error('Cookie refresh error:', error)
@@ -91,7 +83,6 @@ export default function ConvertPage() {
     }
   }, [vluAccount, setVluAccount])
 
-  // Fetch calendar data
   const fetchCalendar = useCallback(async () => {
     if (!vluAccount?.cookie) {
       toast.error('Không tìm thấy phiên đăng nhập')
@@ -113,13 +104,11 @@ export default function ConvertPage() {
         return
       }
 
-      // Handle expired cookie - try only once
       if (response.status === 401) {
         toast.warning('Phiên đăng nhập đã hết hạn, đang cập nhật lại...')
 
         const newCookie = await refreshUserCookie()
         if (newCookie) {
-          // Retry with new cookie - only once
           const retryResponse = await fetch(`/api/calendars?termId=${termId}&yearStudy=${yearStudy}&lichType=${lichType}&cookie=${newCookie}`, { method: 'GET' })
 
           if (retryResponse.ok) {
@@ -137,7 +126,6 @@ export default function ConvertPage() {
         }
       }
 
-      // Handle other errors
       throw new Error(data.message || 'Lỗi không xác định')
     } catch (error) {
       console.error('Calendar fetch error:', error)
@@ -146,7 +134,6 @@ export default function ConvertPage() {
     }
   }, [lichType, termId, yearStudy, refreshUserCookie, vluAccount])
 
-  // Sync to Google Calendar
   const syncToGoogleCalendar = async () => {
     if (!calendar || calendar.length === 0) {
       toast.error('Không có dữ liệu lịch để đồng bộ')
@@ -157,7 +144,6 @@ export default function ConvertPage() {
     setCurrentStep('creating-calendar')
 
     try {
-      // Step 1: Create new calendar
       const calendarName = `${lichType === 'lichHoc' ? 'Lịch Học' : 'Lịch Thi'}-${termId}-${yearStudy}`
 
       const calendarResponse = await fetch('/api/google/calendars', {
@@ -173,11 +159,9 @@ export default function ConvertPage() {
       toast.success(`Đã tạo calendar "${calendarName}"`)
       toast.info('Đang tạo sự kiện, có thể mất vài phút...', { autoClose: false })
 
-      // Step 2: Create calendar events
       setCurrentStep('creating-events')
       const events = prepareCalendarEvents(createdCalendar.id, calendar)
 
-      // Step 3: Send request to create events
       const eventsResponse = await fetch('/api/google/calendars/events', {
         method: 'POST',
         body: JSON.stringify({ events }),
@@ -189,7 +173,6 @@ export default function ConvertPage() {
         throw new Error(result.error || 'Lỗi không xác định')
       }
 
-      // Handle results
       const successCount = result.successfulEvents?.length || 0
       const errorCount = result.failedEvents?.length || 0
 
@@ -207,7 +190,6 @@ export default function ConvertPage() {
     }
   }
 
-  // Get sync button text based on current step
   const getSyncButtonText = () => {
     switch (currentStep) {
       case 'creating-calendar':
@@ -219,15 +201,12 @@ export default function ConvertPage() {
     }
   }
 
-  // Handle CSV download
   const handleDownloadCsv = () => {
     if (!calendar) return
-
     const filename = `${lichType === 'lichHoc' ? 'lichHoc' : 'lichThi'}-${termId}-${yearStudy}.csv`
     downloadFile(calendar2Csv(calendar), filename, 'text/csv')
   }
 
-  // Render login prompt if no VLU account
   if (!vluAccount) {
     return (
       <div className="flex items-center justify-center w-full h-64">
@@ -240,9 +219,22 @@ export default function ConvertPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-10 flex flex-col items-center">
+      <div className="w-full rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 mb-6">
+        <p className="font-semibold flex items-center gap-2">
+          <Chrome className="h-4 w-4" />
+          Phương thức đồng bộ qua web sẽ bị loại bỏ
+        </p>
+        <p className="mt-1">
+          Để bảo mật tốt hơn, vui lòng sử dụng{' '}
+          <Link href="/#install" className="underline font-medium">
+            tiện ích Chrome Calendar VLU
+          </Link>{' '}
+          để đồng bộ lịch mà không cần nhập mật khẩu. Trang này chỉ được giữ lại cho mục đích tương thích ngược.
+        </p>
+      </div>
+
       <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 w-full">Thời khóa biểu</h1>
 
-      {/* Form controls - responsive layout */}
       <div className="w-full flex flex-col md:flex-row gap-3 mb-6">
         <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3">
           <select name="lichType" value={lichType} onChange={handleInputChange} className="border rounded px-2 py-1 h-9 text-sm md:text-base">

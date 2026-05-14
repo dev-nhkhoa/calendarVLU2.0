@@ -3,7 +3,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { parseVluCalendar } from '../src/services/calendar-parser.js'
 
-const DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'test-fixtures', 'vlu-html')
+const DIR = join(dirname(fileURLToPath(import.meta.url)), '__fixtures__', 'vlu-html')
 
 interface TestResult {
   file: string

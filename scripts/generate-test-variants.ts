@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'test-fixtures', 'vlu-html')
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '__fixtures__', 'vlu-html')
 
 const WEEKDAYS = ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu', 'Bảy', 'Chủ Nhật']
 

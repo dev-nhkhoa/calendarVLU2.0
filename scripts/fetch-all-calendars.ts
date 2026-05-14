@@ -14,7 +14,7 @@ const YEAR_STUDIES = ['2022-2023', '2023-2024', '2024-2025', '2025-2026', '2026-
 const TERMS = ['HK01', 'HK02', 'HK03']
 const TYPES = ['study', 'exam'] as const
 
-const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'test-fixtures', 'vlu-html')
+const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '__fixtures__', 'vlu-html')
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
 interface FetchResult {

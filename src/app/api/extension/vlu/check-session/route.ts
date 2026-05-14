@@ -21,16 +21,16 @@ export async function POST(request: Request) {
       baseUrl: body.vlu.baseUrl,
     })
 
-    return extensionJson({ ok: true, authenticated: true, student: null, warnings: [] })
+    return extensionJson({ ok: true, authenticated: true, student: null, warnings: [] }, undefined, request)
   } catch (error) {
-    if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid check-session request.', 400, guard.requestId, { issues: error.issues })
+    if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid check-session request.', 400, guard.requestId, { issues: error.issues }, request)
     if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.CookieExpired) {
-      return extensionError('COOKIE_EXPIRED', 'Your VLU session has expired. Sign in on the official VLU website and try again.', 401, guard.requestId)
+      return extensionError('COOKIE_EXPIRED', 'Your VLU session has expired. Sign in on the official VLU website and try again.', 401, guard.requestId, {}, request)
     }
     if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.VluUnavailable) {
-      return extensionError('VLU_UNAVAILABLE', 'VLU is unavailable. Try again later.', 503, guard.requestId)
+      return extensionError('VLU_UNAVAILABLE', 'VLU is unavailable. Try again later.', 503, guard.requestId, {}, request)
     }
 
-    return mapUnknownError(error, guard.requestId)
+    return mapUnknownError(error, guard.requestId, request)
   }
 }

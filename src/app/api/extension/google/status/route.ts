@@ -12,8 +12,8 @@ export async function GET(request: Request) {
       ok: true,
       connected: Boolean(accessToken),
       signInUrl: accessToken ? null : '/auth/sign-in?callbackUrl=/',
-    })
+    }, undefined, request)
   } catch (error) {
-    return mapUnknownError(error, guard.requestId)
+    return mapUnknownError(error, guard.requestId, request)
   }
 }

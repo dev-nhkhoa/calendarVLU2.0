@@ -27,17 +27,45 @@ export interface ExtensionApiGuardOptions {
   requireOrigin?: boolean
 }
 
-export function extensionJson(data: unknown, init?: ResponseInit) {
+const ALLOWED_CORS_ORIGIN =
+  process.env.EXTENSION_ALLOWED_ORIGINS?.split(',')[0]?.trim() || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+export function extensionJson(data: unknown, init?: ResponseInit, request?: Request) {
+  const origin = request?.headers.get('origin') ?? null
+  const corsOrigin = resolveCorsOrigin(origin, request)
+
   return Response.json(data, {
     ...init,
     headers: {
+      'Access-Control-Allow-Origin': corsOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-CalendarVLU-Client, X-CalendarVLU-Request-Id',
+      'Access-Control-Allow-Credentials': 'true',
+      'Vary': 'Origin',
       'Cache-Control': 'no-store',
       ...init?.headers,
     },
   })
 }
 
-export function extensionError(code: ExtensionErrorCode, message: string, status: number, requestId?: string, details: Record<string, unknown> = {}) {
+export function handleOptionsRequest(request: Request) {
+  const origin = request.headers.get('origin') ?? null
+  const corsOrigin = resolveCorsOrigin(origin, request)
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': corsOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-CalendarVLU-Client, X-CalendarVLU-Request-Id',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin',
+    },
+  })
+}
+
+export function extensionError(code: ExtensionErrorCode, message: string, status: number, requestId?: string, details: Record<string, unknown> = {}, request?: Request) {
   return extensionJson(
     {
       ok: false,
@@ -50,10 +78,17 @@ export function extensionError(code: ExtensionErrorCode, message: string, status
       },
     },
     { status },
+    request,
   )
 }
 
-export function getRequestId(request: Request) {
+export function resolveCorsOrigin(originHeader: string | null, request?: Request): string {
+  if (originHeader && isAllowedOrigin(originHeader)) return originHeader
+  if (request && isExtensionClient(request)) return ALLOWED_CORS_ORIGIN
+  return ALLOWED_CORS_ORIGIN
+}
+
+function getRequestId(request: Request) {
   return request.headers.get('x-calendarvlu-request-id') ?? crypto.randomUUID()
 }
 
@@ -70,6 +105,10 @@ export function isAllowedOrigin(origin: string | null) {
   if (origin.startsWith('chrome-extension://')) return true
 
   return getAllowedOrigins().includes(origin)
+}
+
+export function isExtensionClient(request: Request) {
+  return request.headers.get('X-CalendarVLU-Client') === 'extension'
 }
 
 export function getClientKey(request: Request) {
@@ -114,21 +153,21 @@ export function guardExtensionRequest(request: Request, options: ExtensionApiGua
   const requestId = getRequestId(request)
   const origin = request.headers.get('origin')
 
-  if (options.requireOrigin !== false && !isAllowedOrigin(origin)) {
-    return { ok: false as const, response: extensionError('ORIGIN_NOT_ALLOWED', 'Origin is not allowed.', 403, requestId) }
+  if (options.requireOrigin !== false && !isExtensionClient(request) && !isAllowedOrigin(origin)) {
+    return { ok: false as const, response: extensionError('ORIGIN_NOT_ALLOWED', 'Origin is not allowed.', 403, requestId, {}, request) }
   }
 
   const rateLimit = options.rateLimit ?? { maxRequests: 60, windowMs: 60_000 }
   if (!checkRateLimit(getClientKey(request), rateLimit.maxRequests, rateLimit.windowMs)) {
-    return { ok: false as const, response: extensionError('RATE_LIMITED', 'Too many requests. Try again later.', 429, requestId) }
+    return { ok: false as const, response: extensionError('RATE_LIMITED', 'Too many requests. Try again later.', 429, requestId, {}, request) }
   }
 
   return { ok: true as const, requestId }
 }
 
-export function mapUnknownError(error: unknown, requestId?: string) {
-  if (error instanceof SyntaxError) return extensionError('BAD_REQUEST', 'Invalid JSON request body.', 400, requestId)
-  if (error instanceof Error && error.message === 'REQUEST_TOO_LARGE') return extensionError('BAD_REQUEST', 'Request body is too large.', 413, requestId)
+export function mapUnknownError(error: unknown, requestId?: string, request?: Request) {
+  if (error instanceof SyntaxError) return extensionError('BAD_REQUEST', 'Invalid JSON request body.', 400, requestId, {}, request)
+  if (error instanceof Error && error.message === 'REQUEST_TOO_LARGE') return extensionError('BAD_REQUEST', 'Request body is too large.', 413, requestId, {}, request)
 
-  return extensionError('INTERNAL_ERROR', 'Unexpected server error.', 500, requestId)
+  return extensionError('INTERNAL_ERROR', 'Unexpected server error.', 500, requestId, {}, request)
 }

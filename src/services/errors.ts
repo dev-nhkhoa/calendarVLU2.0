@@ -37,6 +37,8 @@ export enum ParserWarningCode {
   UnknownYearStudy = 'UNKNOWN_YEAR_STUDY',
   /** An event row had all empty/missing required fields and was skipped */
   RowSkipped = 'ROW_SKIPPED',
+  /** No events were found — the schedule is empty for this term/type */
+  EmptyResult = 'EMPTY_RESULT',
 }
 
 export class CalendarServiceError extends Error {

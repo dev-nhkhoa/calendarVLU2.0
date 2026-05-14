@@ -16,9 +16,9 @@ export async function POST(request: Request) {
       filename: body.options.filename,
       contentType: 'text/csv; charset=utf-8',
       csv,
-    })
+    }, undefined, request)
   } catch (error) {
-    if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid CSV export request.', 400, guard.requestId, { issues: error.issues })
-    return mapUnknownError(error, guard.requestId)
+    if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid CSV export request.', 400, guard.requestId, { issues: error.issues }, request)
+    return mapUnknownError(error, guard.requestId, request)
   }
 }

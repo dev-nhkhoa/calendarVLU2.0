@@ -230,7 +230,11 @@ export function parseVluCalendar(rawCalendar: string, yearStudy: string, lichTyp
   })
 
   if (calendars.length === 0) {
-    throw new CalendarServiceError(CalendarServiceErrorCode.ParserFailed, 'No calendar events could be parsed from the response', 422)
+    warnings.push({
+      code: ParserWarningCode.EmptyResult,
+      message: `No ${lichType === 'lichHoc' ? 'study' : 'exam'} events found for this term — the schedule may be empty.`,
+    })
+    return { data: [], warnings }
   }
 
   const deduplicated = deduplicateEvents(calendars, warnings)

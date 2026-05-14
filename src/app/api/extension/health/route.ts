@@ -1,7 +1,7 @@
 import { extensionJson } from '@/services/extension-api'
 import { getFailureCounters } from '@/services/audit-logger'
 
-export async function GET() {
+export async function GET(request: Request) {
   const counters = getFailureCounters()
 
   const status = counters.vluFetchFailures > 5 || counters.parserFailures > 5 ? 'degraded' : 'healthy'
@@ -15,12 +15,12 @@ export async function GET() {
     diagnostics: {
       failures: counters,
     },
-  })
+  }, undefined, request)
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   return extensionJson({
     ok: false,
     error: { code: 'METHOD_NOT_ALLOWED', message: 'Use GET for health check.' },
-  }, { status: 405 })
+  }, { status: 405 }, request)
 }

@@ -15,6 +15,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        path: '/',
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, account }) {
       if (account?.access_token) {

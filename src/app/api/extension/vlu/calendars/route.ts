@@ -1,8 +1,9 @@
 import { extensionCalendarsRequestSchema, formatCookieHeader } from '@/services/calendar-types'
 import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
-import { CalendarServiceError, CalendarServiceErrorCode } from '@/services/errors'
+import { CalendarServiceError, CalendarServiceErrorCode, ParserWarning } from '@/services/errors'
 import { parseVluCalendar } from '@/services/calendar-parser'
 import { fetchRawVluCalendar } from '@/services/vlu-client'
+import { CalendarType } from '@/types/calendar'
 import { ZodError } from 'zod'
 
 export async function POST(request: Request) {
@@ -12,22 +13,27 @@ export async function POST(request: Request) {
   try {
     const body = extensionCalendarsRequestSchema.parse(await readLimitedJson(request))
     const cookie = formatCookieHeader(body.vlu.cookies)
-    const events = []
+    const events: CalendarType[] = []
+    const allWarnings: ParserWarning[] = []
 
     if (body.filters.types.includes('study')) {
       const rawStudy = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichHoc', baseUrl: body.vlu.baseUrl })
-      events.push(...parseVluCalendar(rawStudy, body.filters.yearStudy, 'lichHoc'))
+      const result = parseVluCalendar(rawStudy, body.filters.yearStudy, 'lichHoc')
+      events.push(...result.data)
+      allWarnings.push(...result.warnings)
     }
 
     if (body.filters.types.includes('exam')) {
       const rawExam = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichThi', baseUrl: body.vlu.baseUrl })
-      events.push(...parseVluCalendar(rawExam, body.filters.yearStudy, 'lichThi'))
+      const result = parseVluCalendar(rawExam, body.filters.yearStudy, 'lichThi')
+      events.push(...result.data)
+      allWarnings.push(...result.warnings)
     }
 
     return extensionJson({
       ok: true,
       events,
-      warnings: [],
+      warnings: allWarnings,
       diagnostics: { source: 'vlu', eventCount: events.length },
     })
   } catch (error) {

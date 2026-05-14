@@ -6,7 +6,8 @@ import { CalendarType } from '@/types/calendar'
 export async function formatRawCalendar(rawCalendar: string, yearStudy: string, lichType: string): Promise<CalendarType[] | null> {
   try {
     if (lichType !== 'lichHoc' && lichType !== 'lichThi') return null
-    return parseVluCalendar(rawCalendar, yearStudy, lichType)
+    const result = parseVluCalendar(rawCalendar, yearStudy, lichType)
+    return result.data
   } catch (error) {
     console.error(error)
     return null

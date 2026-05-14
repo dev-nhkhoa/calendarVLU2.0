@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Nunito } from 'next/font/google'
 import './globals.css'
 import type React from 'react'
 import { SessionProvider } from 'next-auth/react'
@@ -9,44 +9,57 @@ import { ToastContainer } from 'react-toastify'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const inter = Inter({ subsets: ['latin'] })
+const nunito = Nunito({ subsets: ['latin'] })
 
-const siteUrl = 'https://calen-vlu.nhkhoa.live'
+const siteUrl = 'https://calendar-vlu.nhkhoa.site'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Calendar VLU - Đồng bộ lịch VLU an toàn với Google Calendar',
-    template: '%s | Calendar VLU',
+    default: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
+    template: '%s | CalendarVLU',
   },
   description:
-    'Đồng bộ lịch học và lịch thi VLU với Google Calendar một cách an toàn qua tiện ích Chrome. Không cần nhập mật khẩu VLU vào website của bên thứ ba.',
+    'CalendarVLU giúp sinh viên Văn Lang import lịch học và lịch thi từ VLU Calendar sang Google Calendar và Outlook.',
   keywords: [
+    'CalendarVLU',
     'VLU',
     'Van Lang University',
     'calendar',
     'lịch học',
     'lịch thi',
     'Google Calendar',
+    'Outlook',
     'Chrome extension',
-    'đồng bộ lịch',
+    'import lịch',
     'trường đại học Văn Lang',
   ],
-  authors: [{ name: 'Calendar VLU' }],
+  authors: [{ name: 'CalendarVLU' }],
   metadataBase: new URL(siteUrl),
+  icons: {
+    icon: [
+      { url: '/favicon/favicon.ico', sizes: 'any' },
+      { url: '/favicon/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    apple: [{ url: '/favicon/apple-touch-icon.png', sizes: '180x180' }],
+  },
+  manifest: '/favicon/site.webmanifest',
   openGraph: {
-    title: 'Calendar VLU - Đồng bộ lịch VLU an toàn với Google Calendar',
+    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
     description:
-      'Đồng bộ lịch học và lịch thi VLU với Google Calendar qua tiện ích Chrome. Bảo mật hơn, không cần nhập mật khẩu VLU.',
+      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar và Outlook.',
     url: siteUrl,
-    siteName: 'Calendar VLU',
+    siteName: 'CalendarVLU',
     locale: 'vi_VN',
     type: 'website',
+    images: [{ url: '/logo.png', width: 512, height: 512 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Calendar VLU - Đồng bộ lịch VLU an toàn',
+    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
     description:
-      'Đồng bộ lịch học và lịch thi VLU với Google Calendar qua tiện ích Chrome.',
+      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar và Outlook.',
+    images: ['/logo.png'],
   },
   robots: {
     index: true,
@@ -63,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
       </head>
-      <body className={inter.className}>
+      <body className={nunito.className}>
         <SessionProvider>
           <AppProvider>
             {children}

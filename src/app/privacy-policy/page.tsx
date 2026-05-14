@@ -1,132 +1,116 @@
 import Link from 'next/link'
+import { CalendarDays } from 'lucide-react'
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6 text-center">Chính Sách Bảo Mật</h1>
-        <p className="text-lg text-gray-600 mb-10 text-center">
-          Calendar VLU cam kết bảo vệ quyền riêng tư của bạn. Chính sách này giải thích cách chúng tôi xử lý dữ liệu trong mô hình tiện ích Chrome (extension-first architecture).
-        </p>
+    <main className="min-h-dvh bg-white text-black">
+      <div className="mx-auto max-w-3xl px-6 py-12 sm:px-8 lg:px-12">
+        <header className="mb-10 flex items-center gap-3 border-b border-black/10 pb-6">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-black/15">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <span className="text-sm font-semibold tracking-tight">CalendarVLU</span>
+          </Link>
+        </header>
 
-        <div className="bg-white shadow-lg rounded-lg p-8 space-y-8">
-          {/* 1. Dữ liệu chúng tôi thu thập */}
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Chính sách bảo mật</h1>
+        <p className="mt-2 text-sm text-black/50">Cập nhật lần cuối: Tháng 5 năm 2026</p>
+
+        <div className="mt-10 space-y-10 text-sm leading-7 text-black/75">
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">1. Dữ liệu chúng tôi thu thập</h2>
-            <p className="text-gray-700 mb-3">Calendar VLU được thiết kế để thu thập càng ít dữ liệu càng tốt. Cụ thể:</p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              <li>
-                <strong>Cookie phiên VLU (session cookie):</strong> Khi bạn sử dụng tiện ích Chrome, cookie phiên từ trang online.vlu.edu.vn được đọc một lần duy nhất để gửi yêu cầu lấy lịch. Cookie này{' '}
-                <strong>không được lưu trữ</strong> trên máy chủ của chúng tôi, không được ghi vào log, và không được chia sẻ với bên thứ ba.
-              </li>
-              <li>
-                <strong>Thông tin tài khoản Google:</strong> Nếu bạn chọn đồng bộ với Google Calendar, chúng tôi thu thập tên, email, và access token OAuth để tạo và quản lý sự kiện lịch.
-              </li>
-              <li>
-                <strong>Dữ liệu lịch:</strong> Lịch học và lịch thi VLU được xử lý trong bộ nhớ tạm thời và không được lưu trữ lâu dài.
-              </li>
-            </ul>
+            <h2 className="mb-3 text-base font-semibold text-black">1. Giới thiệu</h2>
+            <p>
+              CalendarVLU là công cụ giúp sinh viên trường Đại học Văn Lang (VLU) import lịch học và lịch thi từ cổng thông tin VLU lên Google Calendar hoặc Outlook.
+              Chúng tôi cam kết bảo vệ quyền riêng tư của bạn. Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu của bạn.
+            </p>
           </section>
 
-          {/* 2. Cookie và Session */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">2. Cookie và Session</h2>
-            <div className="text-gray-700 space-y-3">
-              <p>
-                <strong>Cookie kỹ thuật (necessary cookies):</strong> Website của chúng tôi chỉ sử dụng cookie phiên kỹ thuật cần thiết cho hoạt động của ứng dụng (ví dụ: session cookie của Auth.js hoặc Next.js).
-              </p>
-              <p>
-                <strong>Cookie VLU (từ online.vlu.edu.vn):</strong> Cookie phiên của VLU chỉ được tiện ích Chrome đọc khi bạn chủ động nhấn nút đồng bộ. Cookie này được gửi qua HTTPS đến máy chủ của chúng tôi đúng một lần để thực hiện lấy lịch và{' '}
-                <strong>không được lưu trữ</strong> sau khi yêu cầu hoàn tất.
-              </p>
-              <p>
-                <strong>Cookie theo dõi (tracking cookies):</strong> Chúng tôi <strong>không</strong> sử dụng cookie theo dõi quảng cáo, cookie của bên thứ ba, hoặc công cụ phân tích nào lưu cookie trên trình duyệt của bạn.
-              </p>
+            <h2 className="mb-3 text-base font-semibold text-black">2. Dữ liệu chúng tôi thu thập</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-black">Thông tin tài khoản Google</h3>
+                <p className="mt-1">
+                  Khi bạn đăng nhập bằng Google để sử dụng tính năng đồng bộ, chúng tôi thu thập email và tên của bạn thông qua OAuth 2.0.
+                  Chúng tôi yêu cầu các quyền sau:
+                </p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li><strong>calendar.events</strong> — Tạo, đọc, cập nhật sự kiện lịch trên Google Calendar của bạn.</li>
+                  <li><strong>calendarlist.readonly</strong> — Đọc danh sách calendar của bạn để bạn chọn nơi import lịch.</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-medium text-black">Dữ liệu lịch VLU</h3>
+                <p className="mt-1">
+                  Lịch học và lịch thi được lấy từ cổng thông tin VLU sau khi bạn đăng nhập. Dữ liệu này chỉ được xử lý trong bộ nhớ tạm thời và không được lưu trữ trên máy chủ của chúng tôi.
+                </p>
+              </div>
             </div>
           </section>
 
-          {/* 3. Mật khẩu VLU */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">3. Mật khẩu VLU</h2>
-            <p className="text-gray-700">
-              <strong>Calendar VLU không bao giờ yêu cầu, thu thập, lưu trữ, hoặc truyền tải mật khẩu VLU của bạn.</strong>{' '}
-              Việc xác thực với VLU diễn ra hoàn toàn trên website chính thức của trường (online.vlu.edu.vn). Chúng tôi không có cơ chế nào để nhận hoặc lưu mật khẩu VLU.
-            </p>
-          </section>
-
-          {/* 4. Google Calendar Data */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">4. Dữ liệu Google Calendar</h2>
-            <p className="text-gray-700 mb-3">
-              Việc đồng bộ với Google Calendar sử dụng giao thức OAuth 2.0. Bạn có thể thu hồi quyền truy cập bất kỳ lúc qua trang quản lý tài khoản Google của mình.
-            </p>
-            <ul className="list-disc list-inside text-gray-700 space-y-2">
-              <li>Chúng tôi chỉ tạo và cập nhật sự kiện lịch theo yêu cầu của bạn.</li>
-              <li>Chúng tôi không đọc lịch cá nhân khác của bạn.</li>
-              <li>Access token OAuth được lưu trữ an toàn trong cơ sở dữ liệu và chỉ được sử dụng cho mục đích đồng bộ.</li>
-              <li>Chúng tôi tuân thủ Chính sách Dữ liệu Người dùng của Google API Services.</li>
+            <h2 className="mb-3 text-base font-semibold text-black">3. Cách chúng tôi sử dụng dữ liệu</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Email và tên: Dùng để xác thực và hiển thị thông tin tài khoản.</li>
+              <li>OAuth tokens: Dùng để đồng bộ sự kiện lịch lên Google Calendar theo yêu cầu của bạn.</li>
+              <li>Dữ liệu lịch VLU: Xử lý để tạo sự kiện trên Google Calendar hoặc xuất file CSV. Không lưu trữ.</li>
             </ul>
           </section>
 
-          {/* 5. Lưu trữ và bảo mật */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">5. Lưu trữ và Bảo mật Dữ liệu</h2>
-            <div className="text-gray-700 space-y-3">
-              <p>
-                <strong>Dữ liệu tài khoản Google:</strong> OAuth tokens được lưu trữ trong cơ sở dữ liệu của chúng tôi trên Vercel (Postgres qua Prisma) và được mã hóa.
-              </p>
-              <p>
-                <strong>Dữ liệu lịch:</strong> Dữ liệu lịch VLU được xử lý trong bộ nhớ tạm thời và không được lưu trữ trên máy chủ. Khi bạn tải file .csv, dữ liệu nằm trên máy tính của bạn.
-              </p>
-              <p>
-                <strong>Cookie VLU:</strong> Không được lưu trữ. Xóa bỏ sau khi xử lý yêu cầu.
-              </p>
-              <p>
-                <strong>Thời gian lưu trữ:</strong> Dữ liệu tài khoản Google được giữ cho đến khi bạn hủy liên kết hoặc yêu cầu xóa. Bạn có thể xóa dữ liệu bất kỳ lúc qua trang cài đặt.
-              </p>
-            </div>
+            <h2 className="mb-3 text-base font-semibold text-black">4. Lưu trữ và bảo mật</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>OAuth tokens (access token, refresh token) được lưu trữ trong cơ sở dữ liệu MongoDB qua Prisma, chỉ dùng cho mục đích đồng bộ Google Calendar.</li>
+              <li>Tokens được làm mới định kỳ và có thể bị thu hồi bất kỳ lúc nào qua trang quản lý tài khoản Google của bạn.</li>
+              <li>Chúng tôi không lưu trữ mật khẩu VLU, dữ liệu lịch VLU, hoặc bất kỳ thông tin nhạy cảm nào khác.</li>
+              <li>Kết nối đến Google API sử dụng HTTPS mã hóa.</li>
+            </ul>
           </section>
 
-          {/* 6. Chia sẻ dữ liệu */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">6. Chia sẻ Dữ liệu</h2>
-            <p className="text-gray-700">
-              Chúng tôi không bán, cho thuê, hoặc chia sẻ dữ liệu cá nhân của bạn với bên thứ ba, trừ khi được yêu cầu bởi pháp luật hoặc cần thiết để bảo vệ quyền lợi hợp pháp của chúng tôi.
-              Dữ liệu lịch VLU không bao giờ được chia sẻ với bất kỳ bên nào khác.
+            <h2 className="mb-3 text-base font-semibold text-black">5. Chia sẻ dữ liệu</h2>
+            <p>
+              Chúng tôi không bán, cho thuê, hoặc chia sẻ dữ liệu cá nhân của bạn với bên thứ ba. Dữ liệu của bạn chỉ được truyền đến:
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li><strong>Google API</strong> — Để đồng bộ lịch theo yêu cầu của bạn.</li>
+              <li><strong>VLU (online.vlu.edu.vn)</strong> — Để lấy dữ liệu lịch học và lịch thi.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-base font-semibold text-black">6. Quyền của bạn</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Bạn có thể thu hồi quyền truy cập Google bất kỳ lúc qua <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" className="underline">myaccount.google.com/permissions</a>.</li>
+              <li>Bạn có thể yêu cầu xóa toàn bộ dữ liệu tài khoản bằng cách liên hệ với chúng tôi.</li>
+              <li>Bạn có thể tải xuống lịch dưới dạng file CSV bất kỳ lúc nào.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-base font-semibold text-black">7. Tuân thủ Google API Services User Data Policy</h2>
+            <p>
+              CalendarVLU tuân thủ <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="underline">Google API Services User Data Policy</a>, bao gồm các yêu cầu về Limited Use. Dữ liệu người dùng thu thập qua Google API chỉ được sử dụng để cung cấp và cải thiện chức năng đồng bộ lịch, không được chuyển sang bên thứ ba hoặc sử dụng cho mục đích khác ngoài mô tả trong chính sách này.
             </p>
           </section>
 
-          {/* 7. Thay đổi chính sách */}
           <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">7. Thay đổi Chính sách</h2>
-            <p className="text-gray-700">
-              Chúng tôi có thể cập nhật chính sách này khi cần thiết. Mọi thay đổi sẽ được đăng tải tại đây và có hiệu lực ngay khi được đăng tải.
-            </p>
-          </section>
-
-          {/* 8. Liên hệ */}
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">8. Liên hệ</h2>
-            <p className="text-gray-700">
-              Nếu bạn có câu hỏi về chính sách bảo mật này, vui lòng liên hệ qua email:{' '}
-              <a href="mailto:work.nhkhoa@gmail.com" className="text-blue-600 hover:underline">
-                work.nhkhoa@gmail.com
-              </a>
-              .
+            <h2 className="mb-3 text-base font-semibold text-black">8. Liên hệ</h2>
+            <p>
+              Nếu bạn có câu hỏi về chính sách bảo mật này, vui lòng liên hệ:<br />
+              Email: <a href="mailto:work.nhkhoa@gmail.com" className="underline">work.nhkhoa@gmail.com</a><br />
+              GitHub: <a href="https://github.com/nhkhoa/calendarVLU" target="_blank" rel="noreferrer" className="underline">github.com/nhkhoa/calendarVLU</a>
             </p>
           </section>
         </div>
 
-        <div className="mt-8 text-center">
-          <Link href="/" className="text-blue-600 hover:underline font-medium">
-            Quay lại Trang chủ
+        <div className="mt-12 border-t border-black/10 pt-6 text-center">
+          <Link href="/" className="text-sm text-black/50 underline underline-offset-4 hover:text-black">
+            Quay lại trang chủ
           </Link>
         </div>
-
-        <footer className="mt-6 text-center text-gray-500 text-sm">
-          Cập nhật lần cuối: Tháng 5 năm 2026
-        </footer>
-      </main>
-    </div>
+      </div>
+    </main>
   )
 }

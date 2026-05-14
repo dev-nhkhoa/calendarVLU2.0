@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const siteUrl = 'https://calen-vlu.nhkhoa.live'
+const siteUrl = 'https://calendar-vlu.nhkhoa.site'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

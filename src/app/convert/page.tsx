@@ -141,26 +141,25 @@ export default function ConvertPage() {
     }
 
     setIsSyncing(true)
-    setCurrentStep('creating-calendar')
+    setCurrentStep('creating-events')
 
     try {
-      const calendarName = `${lichType === 'lichHoc' ? 'Lịch Học' : 'Lịch Thi'}-${termId}-${yearStudy}`
-
-      const calendarResponse = await fetch('/api/google/calendars', {
-        method: 'POST',
-        body: JSON.stringify({ calendarName }),
-      })
+      const calendarResponse = await fetch('/api/google/calendars')
 
       if (!calendarResponse.ok) {
-        throw new Error(await calendarResponse.text())
+        throw new Error('Không thể lấy danh sách calendar')
       }
 
-      const createdCalendar = await calendarResponse.json()
-      toast.success(`Đã tạo calendar "${calendarName}"`)
+      const calendarList = await calendarResponse.json()
+      const targetCalendar = calendarList.items?.[0]
+
+      if (!targetCalendar?.id) {
+        throw new Error('Không tìm thấy calendar nào. Vui lòng tạo một calendar trống trên Google Calendar trước, xem video hướng dẫn ở trang chủ.')
+      }
+
       toast.info('Đang tạo sự kiện, có thể mất vài phút...', { autoClose: false })
 
-      setCurrentStep('creating-events')
-      const events = prepareCalendarEvents(createdCalendar.id, calendar)
+      const events = prepareCalendarEvents(targetCalendar.id, calendar)
 
       const eventsResponse = await fetch('/api/google/calendars/events', {
         method: 'POST',
@@ -192,8 +191,6 @@ export default function ConvertPage() {
 
   const getSyncButtonText = () => {
     switch (currentStep) {
-      case 'creating-calendar':
-        return 'Đang tạo calendar...'
       case 'creating-events':
         return 'Đang tạo sự kiện...'
       default:

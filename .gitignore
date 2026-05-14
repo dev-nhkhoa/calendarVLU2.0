@@ -34,6 +34,9 @@ yarn-error.log*
 .env
 .env.*
 
+# extension build artifacts
+*.zip
+
 # dev tooling
 .agents/
 .kilocode/
@@ -41,6 +44,9 @@ graphify-out/
 
 # vercel
 .vercel
+
+# debug artifacts
+vlu-response.html
 
 # typescript
 *.tsbuildinfo

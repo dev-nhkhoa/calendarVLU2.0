@@ -69,7 +69,7 @@ describe('S7-TC02: Parser parses exam calendar sample', () => {
       startDate: '20/12/2025',
       endDate: '20/12/2025',
       startTime: '7:30:00',
-      endTime: '7:30:00',
+      endTime: '08:30:00',
     })
     expect(warnings).toHaveLength(0)
   })
@@ -84,36 +84,47 @@ describe('S7-TC02: Parser parses exam calendar sample', () => {
 })
 
 describe('S7-TC03: Parser handles events with missing optional fields', () => {
-  it('skips exam row with missing date', () => {
-    expect(() => parseVluCalendar(examRowMissingDate, '2025-2026', 'lichThi')).toThrow(CalendarServiceError)
+  it('skips exam row with missing date and returns empty result with warnings', () => {
+    const { data, warnings } = parseVluCalendar(examRowMissingDate, '2025-2026', 'lichThi')
+    expect(data).toHaveLength(0)
+    expect(warnings).toHaveLength(2)
+    expect(warnings[0].code).toBe(ParserWarningCode.RowSkipped)
+    expect(warnings[1].code).toBe(ParserWarningCode.EmptyResult)
   })
 
-  it('skips exam row with missing time', () => {
-    expect(() => parseVluCalendar(examRowMissingTime, '2025-2026', 'lichThi')).toThrow(CalendarServiceError)
+  it('skips exam row with missing time and returns empty result with warnings', () => {
+    const { data, warnings } = parseVluCalendar(examRowMissingTime, '2025-2026', 'lichThi')
+    expect(data).toHaveLength(0)
+    expect(warnings).toHaveLength(2)
+    expect(warnings[0].code).toBe(ParserWarningCode.RowSkipped)
+    expect(warnings[1].code).toBe(ParserWarningCode.EmptyResult)
   })
 
-  it('skips exam row with missing subject', () => {
-    expect(() => parseVluCalendar(examRowMissingSubject, '2025-2026', 'lichThi')).toThrow(CalendarServiceError)
+  it('skips exam row with missing subject and returns empty result with warnings', () => {
+    const { data, warnings } = parseVluCalendar(examRowMissingSubject, '2025-2026', 'lichThi')
+    expect(data).toHaveLength(0)
+    expect(warnings).toHaveLength(2)
+    expect(warnings[0].code).toBe(ParserWarningCode.RowSkipped)
+    expect(warnings[1].code).toBe(ParserWarningCode.EmptyResult)
   })
 
-  it('skips study row with missing time slot', () => {
-    expect(() => parseVluCalendar(studyRowMissingFields, '2025-2026', 'lichHoc')).toThrow(CalendarServiceError)
+  it('skips study row with missing time slot and returns empty result with warnings', () => {
+    const { data, warnings } = parseVluCalendar(studyRowMissingFields, '2025-2026', 'lichHoc')
+    expect(data).toHaveLength(0)
+    expect(warnings).toHaveLength(1)
+    expect(warnings[0].code).toBe(ParserWarningCode.EmptyResult)
   })
 
-  it('returns empty schedule gracefully', () => {
+  it('throws when schedule is empty (too short to be valid HTML)', () => {
     expect(() => parseVluCalendar(emptySchedule, '2025-2026', 'lichHoc')).toThrow(CalendarServiceError)
   })
 
-  it('throws ParserFailed when no events could be parsed', () => {
-    try {
-      parseVluCalendar(studyRowInvalidTimeSlot, '2025-2026', 'lichHoc')
-      fail('Expected an error')
-    } catch (error) {
-      expect(error).toBeInstanceOf(CalendarServiceError)
-      if (error instanceof CalendarServiceError) {
-        expect(error.code).toBe(CalendarServiceErrorCode.ParserFailed)
-      }
-    }
+  it('returns empty result with warnings when all rows fail to parse', () => {
+    const { data, warnings } = parseVluCalendar(studyRowInvalidTimeSlot, '2025-2026', 'lichHoc')
+    expect(data).toHaveLength(0)
+    expect(warnings).toHaveLength(2)
+    expect(warnings[0].code).toBe(ParserWarningCode.InvalidTimeSlot)
+    expect(warnings[1].code).toBe(ParserWarningCode.EmptyResult)
   })
 })
 
@@ -210,7 +221,7 @@ describe('Deduplication', () => {
         startDate: '15/12/2025',
         endDate: '15/12/2025',
         startTime: '07:30:00',
-        endTime: '07:30:00',
+        endTime: '08:30:00',
         timezone: 'Asia/Ho_Chi_Minh',
       },
     ]

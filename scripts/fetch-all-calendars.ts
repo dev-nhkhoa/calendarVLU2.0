@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 const COOKIE = process.env.VLU_COOKIE
 if (!COOKIE) {
   console.error('Usage: VLU_COOKIE="ASP.NET_SessionId=xxx; __sbref=xxx; _ga=xxx; _ga_S8NVNJR24D=xxx" npx tsx scripts/fetch-all-calendars.ts')
-  process.exit(1)
+  throw new Error('Missing VLU_COOKIE')
 }
 
 const BASE_URL = 'https://online.vlu.edu.vn/Home'
@@ -41,7 +41,7 @@ async function fetchAndSave(type: string, yearStudy: string, termId: string): Pr
 
   try {
     const response = await fetch(url, {
-      headers: { Cookie: COOKIE },
+      headers: { Cookie: COOKIE! },
       redirect: 'manual',
     })
 

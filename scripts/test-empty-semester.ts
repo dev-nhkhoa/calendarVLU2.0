@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs'
 const VLU_COOKIE = process.env.VLU_COOKIE
 if (!VLU_COOKIE) {
   console.error('Usage: VLU_COOKIE="ASP.NET_SessionId=xxx" npx tsx scripts/test-empty-semester.ts')
-  process.exit(1)
+  throw new Error('Missing VLU_COOKIE')
 }
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
   console.log('Cookie:', VLU_COOKIE)
 
   const response = await fetch(url, {
-    headers: { Cookie: VLU_COOKIE },
+      headers: { Cookie: VLU_COOKIE! },
     redirect: 'manual',
   })
 

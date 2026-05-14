@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env.*
 
+# dev tooling
+.agents/
+.kilocode/
+graphify-out/
+
 # vercel
 .vercel
 

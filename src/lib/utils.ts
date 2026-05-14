@@ -28,7 +28,29 @@ export function downloadFile(content: string, filename: string, type: string) {
 }
 
 export function convertGTime(time: string) {
-  return time.replace('g', ':') + ':00'
+  const cleaned = time.trim().toLowerCase()
+  if (!cleaned) return cleaned
+
+  let normalized = cleaned.replace(/p$/, '')
+
+  if (/[gh.:]/.test(normalized)) {
+    normalized = normalized.replace(/[gh]/, ':').replace(/\./, ':')
+    const parts = normalized.split(':')
+    const h = parts[0] || '00'
+    const m = parts[1]?.padStart(2, '0') || '00'
+    return `${h}:${m}:00`
+  }
+
+  return normalized + ':00:00'
+}
+
+export function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number)
+  if (isNaN(h) || isNaN(m)) return time
+  const total = h * 60 + m + minutes
+  const rh = Math.floor(total / 60) % 24
+  const rm = total % 60
+  return `${String(rh).padStart(2, '0')}:${String(rm).padStart(2, '0')}:00`
 }
 
 export function formatText(text: string | null): string | undefined {

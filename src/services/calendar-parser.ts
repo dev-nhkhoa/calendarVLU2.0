@@ -1,5 +1,5 @@
 import { convertTime } from '@/constants/calendar'
-import { convertGTime, formatText, getExactDate, getMondayDate } from '@/lib/utils'
+import { convertGTime, formatText, getExactDate, getMondayDate, addMinutesToTime } from '@/lib/utils'
 import { CalendarType } from '@/types/calendar'
 import { JSDOM } from 'jsdom'
 import { CalendarServiceError, CalendarServiceErrorCode, ParserWarning, ParserWarningCode, ParserResult } from './errors'
@@ -22,7 +22,8 @@ function parseExamRow(cells: NodeListOf<HTMLTableCellElement>): CalendarType | n
   const startTimeInput = formatText(cells[6]?.textContent)
   const startTime = startTimeInput ? convertGTime(startTimeInput) : undefined
   const endDate = startDate
-  const endTime = startTime
+  const DEFAULT_EXAM_MINUTES = 60
+  const endTime = startTime ? addMinutesToTime(startTime, DEFAULT_EXAM_MINUTES) : startTime
   const summary = formatText(cells[2]?.textContent)
   const location = formatText(cells[7]?.textContent)
   const description = [formatText(cells[4]?.textContent), formatText(cells[1]?.textContent), formatText(cells[10]?.textContent)].filter(Boolean).join(' - ')
@@ -55,6 +56,8 @@ export function parseExamRowIntoCalendarType(cellsText: string[]): CalendarType 
 
   if (!summary || !startDate || !startTime) return null
 
+  const DEFAULT_EXAM_MINUTES = 60
+
   return {
     id: buildEventId(['vlu', 'exam', summary, startDate, startTime, location]),
     source: 'vlu',
@@ -64,7 +67,7 @@ export function parseExamRowIntoCalendarType(cellsText: string[]): CalendarType 
     startDate,
     endDate: startDate,
     startTime,
-    endTime: startTime,
+    endTime: addMinutesToTime(startTime, DEFAULT_EXAM_MINUTES),
     description: description || summary,
     timezone: 'Asia/Ho_Chi_Minh',
   }

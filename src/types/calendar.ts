@@ -9,6 +9,9 @@ interface TableCalendarType {
 }
 
 interface CalendarType {
+  id?: string
+  source?: 'vlu'
+  type?: 'study' | 'exam'
   summary: string
   description: string
   location: string
@@ -16,6 +19,9 @@ interface CalendarType {
   endDate: string
   startTime: string
   endTime: string
+  timezone?: string
+  term?: string
+  metadata?: Record<string, unknown>
   private?: boolean | null
 }
 

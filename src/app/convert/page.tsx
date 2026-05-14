@@ -11,6 +11,7 @@ import Loading from '@/components/loading'
 import { downloadFile } from '@/lib/utils'
 import { useApp } from '@/app-provider'
 import Link from 'next/link'
+import { prepareCalendarEvents } from '@/services/google-calendar-service'
 
 export default function ConvertPage() {
   const { vluAccount, setVluAccount } = useApp()
@@ -144,42 +145,6 @@ export default function ConvertPage() {
       setIsLoading(false)
     }
   }, [lichType, termId, yearStudy, refreshUserCookie, vluAccount])
-
-  // Format event dates for Google Calendar
-  const formatEventDate = (dateStr: string, timeStr: string) => {
-    const [day, month, year] = dateStr.split('/').map(Number)
-    const isoDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-    return `${isoDate}T${timeStr}+07:00`
-  }
-
-  // Prepare events for Google Calendar
-  const prepareCalendarEvents = (calendarId: string, calendarData: CalendarType[]) => {
-    return calendarData
-      .map((item) => {
-        const { summary, description, location, endTime, startDate, startTime } = item
-
-        try {
-          return {
-            calendarId,
-            summary: summary || 'Không có tiêu đề',
-            location: location || 'Chưa xác định',
-            description: description || 'Không có mô tả',
-            start: {
-              dateTime: formatEventDate(startDate, startTime),
-              timeZone: 'Asia/Ho_Chi_Minh',
-            },
-            end: {
-              dateTime: formatEventDate(startDate, endTime),
-              timeZone: 'Asia/Ho_Chi_Minh',
-            },
-          }
-        } catch (error) {
-          console.error('Event formatting error:', error)
-          return null
-        }
-      })
-      .filter(Boolean) // Remove any null entries
-  }
 
   // Sync to Google Calendar
   const syncToGoogleCalendar = async () => {

@@ -1,5 +1,6 @@
 import { formatRawCalendar } from '@/actions/calendar'
-import { getCurrentTermID, getCurrentYearStudy, LICH } from '@/lib/calendar'
+import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
+import { fetchRawVluCalendar } from '@/services/vlu-client'
 import { CalendarType } from '@/types/calendar'
 import { NextRequest } from 'next/server'
 
@@ -28,16 +29,16 @@ export async function GET(req: NextRequest) {
   // if undefined, get current termId and yearStudy
   termId = termId ?? getCurrentTermID()
   yearStudy = yearStudy ?? getCurrentYearStudy()
-  const getLich = lichType == 'lichHoc' ? LICH.LichHoc : LICH.LichThi
+  if (lichType !== 'lichHoc' && lichType !== 'lichThi') return Response.json({ error: 'Invalid lichType' }, { status: 400 })
 
-  const response = await fetch(`${process.env.VLU_HOME_URL}/${getLich}?YearStudy=${yearStudy}&TermID=${termId}`, {
-    method: 'GET',
-    headers: { Cookie: cookie },
-    redirect: 'manual',
-  })
-  if (response.status != 200 || !response.ok) return Response.json({ error: 'Cookie Expired!' }, { status: 401 })
+  let rawCalendar: string
+  try {
+    rawCalendar = await fetchRawVluCalendar({ cookie, termId, yearStudy, lichType })
+  } catch {
+    return Response.json({ error: 'Cookie Expired!' }, { status: 401 })
+  }
 
-  const formattedCalendar: CalendarType[] | null = await formatRawCalendar(await response.text(), yearStudy, lichType)
+  const formattedCalendar: CalendarType[] | null = await formatRawCalendar(rawCalendar, yearStudy, lichType)
 
   if (!formattedCalendar) return Response.json({ error: 'Failed when converting calendars' }, { status: 503 })
 

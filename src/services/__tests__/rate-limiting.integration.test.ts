@@ -30,9 +30,7 @@ describe('Integration: Rate Limiting Persistence', () => {
       redisMock.hincrby.mockResolvedValue(1)
       redisMock.expire.mockResolvedValue(1)
 
-      const clientKey = 'test-client-key'
       const maxRequests = 5
-      const windowMs = 60000
 
       // Make multiple requests up to the limit
       for (let i = 1; i <= maxRequests; i++) {

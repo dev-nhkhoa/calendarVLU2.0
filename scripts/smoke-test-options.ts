@@ -19,6 +19,10 @@ const endpoints = [
 
 const allowedOrigin = 'https://calendarvlu.test'
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
+}
+
 async function testOptionsPreflight(endpoint: string) {
   const url = `https://calendarvlu.test${endpoint}`
 
@@ -60,7 +64,7 @@ async function testOptionsPreflight(endpoint: string) {
     console.log(`✅ ${endpoint} - CORS headers OK`)
     return true
   } catch (error) {
-    console.error(`❌ ${endpoint} - ${error.message}`)
+    console.error(`❌ ${endpoint} - ${getErrorMessage(error)}`)
     return false
   }
 }

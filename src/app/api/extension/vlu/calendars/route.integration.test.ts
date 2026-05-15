@@ -132,7 +132,7 @@ describe('Integration: Full VLU Calendar Flow', () => {
       })
 
       // Verify events have unique IDs
-      const eventIds = result.events.map((e: any) => e.id)
+      const eventIds = result.events.map((event: { id: string }) => event.id)
       expect(new Set(eventIds).size).toBe(eventIds.length)
 
       // Verify fetch was called with correct URL and cookies

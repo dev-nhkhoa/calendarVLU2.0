@@ -31,9 +31,11 @@ const mockGoogleResponses = {
   ],
 }
 
-function mockGoogleApi(successfulBatches: any[][], failureBatches: any[][] = []) {
+type MockGoogleApiResponse = (typeof mockGoogleResponses.successfulBatch)[number] | (typeof mockGoogleResponses.partialFailureBatch)[number]
+
+function mockGoogleApi(successfulBatches: MockGoogleApiResponse[][], failureBatches: MockGoogleApiResponse[][] = []) {
   let callCount = 0
-  global.fetch = jest.fn().mockImplementation((url, options) => {
+  global.fetch = jest.fn().mockImplementation((url: string) => {
     if (url.includes('googleapis.com/calendar/v3/calendars/')) {
       const batchIndex = Math.floor(callCount / 10) // Assuming 10 events per batch
       const batchResponse = successfulBatches[batchIndex] || failureBatches[batchIndex] || []

@@ -20,6 +20,23 @@ export async function POST(request: Request) {
     const events: CalendarType[] = []
     const allWarnings: ParserWarning[] = []
 
+    console.info('[VLU calendars] Request accepted', {
+      requestId: guard.requestId,
+      cookieCount: body.vlu.cookies.length,
+      cookies: body.vlu.cookies.map((cookie) => ({
+        name: cookie.name,
+        domain: cookie.domain,
+        path: cookie.path,
+        secure: cookie.secure,
+        httpOnly: cookie.httpOnly,
+        valueLength: cookie.value.length,
+        valuePreview: cookie.value.length > 8 ? `${cookie.value.slice(0, 4)}...${cookie.value.slice(-4)}` : '[redacted]',
+      })),
+      filters: body.filters,
+      origin: request.headers.get('origin'),
+      client: request.headers.get('x-calendarvlu-client'),
+    })
+
     if (body.filters.types.includes('study')) {
       const rawStudy = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichHoc' })
       const result = parseVluCalendar(rawStudy, body.filters.yearStudy, 'lichHoc')
@@ -42,7 +59,13 @@ export async function POST(request: Request) {
     }, undefined, request)
   } catch (error) {
     if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid calendars request.', 400, guard.requestId, { issues: error.issues }, request)
+    if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.InvalidCookie) {
+      return extensionError('BAD_REQUEST', 'Invalid VLU cookie format.', 400, guard.requestId, {}, request)
+    }
     if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.CookieExpired) {
+      console.warn('[VLU calendars] Cookie rejected by VLU', {
+        requestId: guard.requestId,
+      })
       return extensionError('COOKIE_EXPIRED', 'Your VLU session has expired. Sign in on the official VLU website and try again.', 401, guard.requestId, {}, request)
     }
     if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.ParserFailed) {

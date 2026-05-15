@@ -74,6 +74,25 @@ export const extensionGoogleImportRequestSchema = z.object({
     .default({}),
 })
 
+export const extensionOutlookImportRequestSchema = z.object({
+  events: z.array(normalizedCalendarEventSchema),
+  options: z
+    .object({
+      dryRun: z.boolean().default(false),
+    })
+    .default({}),
+})
+
+export const extensionIcalRequestSchema = z.object({
+  events: z.array(normalizedCalendarEventSchema),
+  options: z
+    .object({
+      timezone: z.string().default('Asia/Ho_Chi_Minh'),
+      filename: z.string().min(1).default('vlu-calendar.ics'),
+    })
+    .default({}),
+})
+
 export type CalendarEventType = z.infer<typeof calendarEventTypeSchema>
 export type NormalizedCalendarEvent = z.infer<typeof normalizedCalendarEventSchema>
 export type CalendarRequest = z.infer<typeof calendarRequestSchema>

@@ -31,6 +31,16 @@ export function SignInForm() {
         >
           Tài khoản Google
         </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setIsLoading(true)
+            signIn('microsoft-entra-id', { callbackUrl })
+          }}
+          disabled={isLoading}
+        >
+          Tài khoản Microsoft
+        </Button>
       </div>
     </div>
   )

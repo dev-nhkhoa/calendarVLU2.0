@@ -38,6 +38,7 @@ export async function refreshAccessToken(refreshToken: string) {
   try {
     const response = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         client_id: process.env.AUTH_GOOGLE_ID!,
         client_secret: process.env.AUTH_GOOGLE_SECRET!,

@@ -14,8 +14,6 @@ export async function createAccount(account: Account, userEmail: string) {
     data: {
       type: 'credential',
       provider: account.provider,
-      student_id: account.student_id,
-      password: account.password,
       access_token: account.access_token,
       user: { connect: { email: userEmail } },
     },

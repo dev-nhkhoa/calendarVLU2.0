@@ -8,7 +8,6 @@
 
 - `id`: ID người dùng (MongoDB ObjectId)
 - `name`: Tên người dùng
-- `studentId`: Mã số sinh viên (duy nhất)
 - `email`: Email người dùng (duy nhất)
 - `image`: Ảnh đại diện
 - `accounts`: Quan hệ một-nhiều với bảng Account
@@ -29,6 +28,5 @@
 - `scope`: Phạm vi quyền hạn
 - `id_token`: Token định danh
 - `session_state`: Trạng thái phiên
-- `password`: Mật khẩu
 - `createdAt`: Thời gian tạo
 - `updatedAt`: Thời gian cập nhật

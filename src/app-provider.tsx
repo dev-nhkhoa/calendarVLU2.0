@@ -3,13 +3,9 @@
 import type { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
-import useLocalStorage from './hooks/local-storage'
-import { vluAccountType } from './types/account'
 
 interface AppContextType {
   user: User | null
-  vluAccount: vluAccountType | null
-  setVluAccount: (vluAccount: vluAccountType | null) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -17,7 +13,6 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession()
   const [user, setUser] = useState<User | null>(null)
-  const [vluAccount, setVluAccount] = useLocalStorage<vluAccountType | null>('vluAccount')
 
   useEffect(() => {
     if (session?.user) {
@@ -25,7 +20,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [session])
 
-  return <AppContext.Provider value={{ user, vluAccount, setVluAccount }}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ user }}>{children}</AppContext.Provider>
 }
 
 export function useApp() {

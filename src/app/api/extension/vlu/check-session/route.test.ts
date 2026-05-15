@@ -1,5 +1,7 @@
 import { POST } from './route'
 import { resetExtensionRateLimitsForTests } from '@/services/extension-api'
+import { CalendarServiceError, CalendarServiceErrorCode } from '@/services/errors'
+import * as vluClient from '@/services/vlu-client'
 
 describe('POST /api/extension/vlu/check-session', () => {
   beforeEach(() => {
@@ -33,5 +35,25 @@ describe('POST /api/extension/vlu/check-session', () => {
       expect.objectContaining({ headers: { Cookie: 'ASP.NET_SessionId=secret-cookie' } }),
     )
     expect((global.fetch as jest.Mock).mock.calls[0][0]).not.toContain('evil.test')
+  })
+
+  it('returns 400 for invalid cookie format', async () => {
+    jest.spyOn(vluClient, 'fetchRawVluCalendar').mockImplementation(async () => {
+      throw new CalendarServiceError(CalendarServiceErrorCode.InvalidCookie, 'Invalid cookie', 400)
+    })
+
+    const response = await POST(
+      new Request('https://calendarvlu.test/api/extension/vlu/check-session', {
+        method: 'POST',
+        headers: { origin: 'https://calendarvlu.test' },
+        body: JSON.stringify({
+          vlu: {
+            cookies: [{ name: 'ASP.NET_SessionId', value: 'bad value with space' }],
+          },
+        }),
+      }),
+    )
+
+    expect(response.status).toBe(400)
   })
 })

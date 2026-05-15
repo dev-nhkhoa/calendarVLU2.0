@@ -17,6 +17,13 @@ export async function POST(request: Request) {
     const body = checkSessionRequestSchema.parse(await readLimitedJson(request))
     const cookie = formatCookieHeader(body.vlu.cookies)
 
+    console.info('[VLU check-session] Request accepted', {
+      requestId: guard.requestId,
+      cookieCount: body.vlu.cookies.length,
+      cookieNames: body.vlu.cookies.map((cookie) => cookie.name),
+      origin: request.headers.get('origin'),
+    })
+
     await fetchRawVluCalendar({
       cookie,
       termId: getCurrentTermID(),
@@ -27,6 +34,9 @@ export async function POST(request: Request) {
     return extensionJson({ ok: true, authenticated: true, student: null, warnings: [] }, undefined, request)
   } catch (error) {
     if (error instanceof ZodError) return extensionError('BAD_REQUEST', 'Invalid check-session request.', 400, guard.requestId, { issues: error.issues }, request)
+    if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.InvalidCookie) {
+      return extensionError('BAD_REQUEST', 'Invalid VLU cookie format.', 400, guard.requestId, {}, request)
+    }
     if (error instanceof CalendarServiceError && error.code === CalendarServiceErrorCode.CookieExpired) {
       return extensionError('COOKIE_EXPIRED', 'Your VLU session has expired. Sign in on the official VLU website and try again.', 401, guard.requestId, {}, request)
     }

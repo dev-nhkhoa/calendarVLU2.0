@@ -43,7 +43,53 @@ describe('extension-api guards', () => {
     expect((await guardExtensionRequest(request)).ok).toBe(true)
   })
 
+  it('allows chrome extension origins in development when no explicit allowlist is configured', async () => {
+    const originalNodeEnv = process.env.NODE_ENV
+    delete process.env.EXTENSION_ALLOWED_ORIGINS
+    process.env.NODE_ENV = 'development'
+
+    try {
+      const request = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
+        method: 'POST',
+        headers: { origin: 'chrome-extension://devextensionid' },
+      })
+
+      expect(isAllowedOrigin('chrome-extension://devextensionid')).toBe(true)
+      expect((await guardExtensionRequest(request)).ok).toBe(true)
+    } finally {
+      if (originalNodeEnv === undefined) {
+        delete process.env.NODE_ENV
+      } else {
+        process.env.NODE_ENV = originalNodeEnv
+      }
+    }
+  })
+
+  it('allows chrome extension origins in development even when local web origin is configured', async () => {
+    const originalNodeEnv = process.env.NODE_ENV
+    process.env.EXTENSION_ALLOWED_ORIGINS = 'http://localhost:3000'
+    process.env.NODE_ENV = 'development'
+
+    try {
+      const request = new Request('https://calendarvlu.test/api/extension/google/status', {
+        method: 'GET',
+        headers: { origin: 'chrome-extension://devextensionid' },
+      })
+
+      expect(isAllowedOrigin('chrome-extension://devextensionid')).toBe(true)
+      expect((await guardExtensionRequest(request)).ok).toBe(true)
+    } finally {
+      if (originalNodeEnv === undefined) {
+        delete process.env.NODE_ENV
+      } else {
+        process.env.NODE_ENV = originalNodeEnv
+      }
+    }
+  })
+
   it('does not trust the extension client header as an origin bypass', async () => {
+    const originalNodeEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
     const disallowedOrigin = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
       method: 'POST',
       headers: { origin: 'https://evil.test', 'X-CalendarVLU-Client': 'extension' },
@@ -53,8 +99,36 @@ describe('extension-api guards', () => {
       headers: { 'X-CalendarVLU-Client': 'extension' },
     })
 
-    expect((await guardExtensionRequest(disallowedOrigin)).ok).toBe(false)
-    expect((await guardExtensionRequest(missingOrigin)).ok).toBe(false)
+    try {
+      expect((await guardExtensionRequest(disallowedOrigin)).ok).toBe(false)
+      expect((await guardExtensionRequest(missingOrigin)).ok).toBe(false)
+    } finally {
+      if (originalNodeEnv === undefined) {
+        delete process.env.NODE_ENV
+      } else {
+        process.env.NODE_ENV = originalNodeEnv
+      }
+    }
+  })
+
+  it('allows extension client requests without origin in development', async () => {
+    const originalNodeEnv = process.env.NODE_ENV
+    process.env.NODE_ENV = 'development'
+
+    try {
+      const request = new Request('https://calendarvlu.test/api/extension/health', {
+        method: 'GET',
+        headers: { 'X-CalendarVLU-Client': 'extension' },
+      })
+
+      expect((await guardExtensionRequest(request)).ok).toBe(true)
+    } finally {
+      if (originalNodeEnv === undefined) {
+        delete process.env.NODE_ENV
+      } else {
+        process.env.NODE_ENV = originalNodeEnv
+      }
+    }
   })
 
   it('does not return a credentialed CORS origin for disallowed origins', () => {

@@ -30,6 +30,20 @@ export interface ExtensionApiGuardOptions {
 
 const FALLBACK_CORS_ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+function isDevelopment() {
+  return process.env.NODE_ENV === 'development'
+}
+
+function isChromeExtensionOrigin(origin: string | null) {
+  if (!origin) return false
+
+  try {
+    return new URL(origin).protocol === 'chrome-extension:'
+  } catch {
+    return false
+  }
+}
+
 export function extensionJson(data: unknown, init?: ResponseInit, request?: Request) {
   const origin = request?.headers.get('origin') ?? null
   const corsOrigin = resolveCorsOrigin(origin, request)
@@ -112,8 +126,13 @@ export function getAllowedOrigins() {
 
 export function isAllowedOrigin(origin: string | null) {
   if (!origin) return false
+  if (isDevelopment() && isChromeExtensionOrigin(origin)) return true
 
   return getAllowedOrigins().includes(origin)
+}
+
+function isAllowedExtensionClientWithoutOrigin(request: Request) {
+  return isDevelopment() && !request.headers.get('origin') && isExtensionClient(request)
 }
 
 export function isExtensionClient(request: Request) {
@@ -189,7 +208,7 @@ export async function guardExtensionRequest(request: Request, options: Extension
   const requestId = getRequestId(request)
   const origin = request.headers.get('origin')
 
-  if (options.requireOrigin !== false && !isAllowedOrigin(origin)) {
+  if (options.requireOrigin !== false && !isAllowedOrigin(origin) && !isAllowedExtensionClientWithoutOrigin(request)) {
     return { ok: false as const, response: extensionError('ORIGIN_NOT_ALLOWED', 'Origin is not allowed.', 403, requestId, {}, request) }
   }
 

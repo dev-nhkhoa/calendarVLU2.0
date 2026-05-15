@@ -8,6 +8,7 @@ import { prisma } from '@/lib/prisma'
 const microsoftTenantId = process.env.AUTH_MICROSOFT_TENANT_ID || 'common'
 
 export const authConfig = {
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   pages: {
     signIn: '/auth/sign-in',

@@ -1,20 +1,9 @@
 import { getAccessToken } from '@/actions/google'
+import { isAllowedAppOrigin, resolveAppCorsOrigin } from '@/services/app-origin'
 import { NextRequest } from 'next/server'
 
-const ALLOWED_ORIGINS = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean)
-
-function isAllowedOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin')
-  if (!origin) return true
-  return ALLOWED_ORIGINS.includes(origin)
-}
-
 function corsHeaders(request: NextRequest) {
-  const origin = request.headers.get('origin')
-  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  const allowedOrigin = resolveAppCorsOrigin(request)
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -29,7 +18,7 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAllowedOrigin(req)) {
+  if (!isAllowedAppOrigin(req)) {
     return Response.json({ error: 'Origin not allowed' }, { status: 403, headers: corsHeaders(req) })
   }
 

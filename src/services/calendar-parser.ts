@@ -1,10 +1,23 @@
 import { convertTime } from '@/constants/calendar'
-import { convertGTime, formatText, getExactDate, getMondayDate, addMinutesToTime } from '@/lib/utils'
+import { convertGTime, getExactDate, getMondayDate, addMinutesToTime } from '@/lib/utils'
 import { CalendarType } from '@/types/calendar'
 import { JSDOM } from 'jsdom'
 import { CalendarServiceError, CalendarServiceErrorCode, ParserWarning, ParserWarningCode, ParserResult } from './errors'
 
 export type VluCalendarType = 'lichHoc' | 'lichThi'
+
+export function sanitizeVluText(text: string | null): string | undefined {
+  if (!text) return undefined
+  return text
+    .replace(/<[^>]*>/g, '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 function buildEventId(parts: Array<string | undefined>) {
   return parts
@@ -18,15 +31,16 @@ function buildEventId(parts: Array<string | undefined>) {
 }
 
 function parseExamRow(cells: NodeListOf<HTMLTableCellElement>): CalendarType | null {
-  const startDate = formatText(cells[5]?.textContent)
-  const startTimeInput = formatText(cells[6]?.textContent)
+  const startDate = sanitizeVluText(cells[5]?.textContent)
+  const startTimeInput = sanitizeVluText(cells[6]?.textContent)
   const startTime = startTimeInput ? convertGTime(startTimeInput) : undefined
   const endDate = startDate
-  const DEFAULT_EXAM_MINUTES = 60
-  const endTime = startTime ? addMinutesToTime(startTime, DEFAULT_EXAM_MINUTES) : startTime
-  const summary = formatText(cells[2]?.textContent)
-  const location = formatText(cells[7]?.textContent)
-  const description = [formatText(cells[4]?.textContent), formatText(cells[1]?.textContent), formatText(cells[10]?.textContent)].filter(Boolean).join(' - ')
+  const durationRaw = sanitizeVluText(cells[11]?.textContent)
+  const examMinutes = durationRaw ? Number.parseInt(durationRaw, 10) || 60 : 60
+  const endTime = startTime ? addMinutesToTime(startTime, examMinutes) : startTime
+  const summary = sanitizeVluText(cells[2]?.textContent)
+  const location = sanitizeVluText(cells[7]?.textContent)
+  const description = [sanitizeVluText(cells[4]?.textContent), sanitizeVluText(cells[1]?.textContent), sanitizeVluText(cells[10]?.textContent)].filter(Boolean).join(' - ')
 
   if (!summary || !startDate || !startTime) return null
 
@@ -56,7 +70,8 @@ export function parseExamRowIntoCalendarType(cellsText: string[]): CalendarType 
 
   if (!summary || !startDate || !startTime) return null
 
-  const DEFAULT_EXAM_MINUTES = 60
+  const durationRaw = get(11)
+  const examMinutes = durationRaw ? Number.parseInt(durationRaw, 10) || 60 : 60
 
   return {
     id: buildEventId(['vlu', 'exam', summary, startDate, startTime, location]),
@@ -67,7 +82,7 @@ export function parseExamRowIntoCalendarType(cellsText: string[]): CalendarType 
     startDate,
     endDate: startDate,
     startTime,
-    endTime: addMinutesToTime(startTime, DEFAULT_EXAM_MINUTES),
+    endTime: addMinutesToTime(startTime, examMinutes),
     description: description || summary,
     timezone: 'Asia/Ho_Chi_Minh',
   }
@@ -79,15 +94,15 @@ function parseStudyRows(
   rowIndex: number,
   warnings: ParserWarning[],
 ): CalendarType[] {
-  const weeksRaw = formatText(cells[9]?.textContent)
+  const weeksRaw = sanitizeVluText(cells[9]?.textContent)
   if (!weeksRaw) return []
 
   const weeks = weeksRaw.split(',').map((w) => w.trim()).filter(Boolean)
-  const learningTime = formatText(cells[6]?.textContent)
-  const learningDate = formatText(cells[5]?.textContent)
-  const summary = formatText(cells[2]?.textContent)
-  const location = formatText(cells[7]?.textContent)
-  const teacher = formatText(cells[8]?.textContent)
+  const learningTime = sanitizeVluText(cells[6]?.textContent)
+  const learningDate = sanitizeVluText(cells[5]?.textContent)
+  const summary = sanitizeVluText(cells[2]?.textContent)
+  const location = sanitizeVluText(cells[7]?.textContent)
+  const teacher = sanitizeVluText(cells[8]?.textContent)
 
   if (!summary) return []
 

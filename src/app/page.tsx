@@ -66,9 +66,10 @@ export default function LandingPage() {
             <div className="mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-black/10">
               <iframe
                 className="h-full w-full"
-                src="https://www.youtube.com/embed/x3m1PGEfG5c?autoplay=1&loop=1&playlist=x3m1PGEfG5c&mute=1"
+                src="https://www.youtube.com/embed/x3m1PGEfG5c?loop=1&playlist=x3m1PGEfG5c"
                 title="Hướng dẫn cài đặt CalendarVLU"
-                allow="autoplay; encrypted-media"
+                loading="lazy"
+                allow="encrypted-media"
                 allowFullScreen
               />
             </div>

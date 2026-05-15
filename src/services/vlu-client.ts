@@ -90,14 +90,38 @@ export async function fetchRawVluCalendar(input: FetchVluCalendarInput) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 10_000)
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: { Cookie: safeCookie },
-    redirect: 'manual',
-    signal: controller.signal,
-  }).finally(() => clearTimeout(timeoutId))
+  let response: Response
+  try {
+    response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { Cookie: safeCookie },
+      redirect: 'manual',
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
+  } catch (error) {
+    const isAbort = error instanceof DOMException && error.name === 'AbortError'
+    console.error('[VLU fetch] Network error', {
+      isAbort,
+      error: String(error),
+      url: url.toString(),
+    })
+    throw new CalendarServiceError(
+      CalendarServiceErrorCode.VluUnavailable,
+      isAbort ? 'VLU request timed out (10s)' : 'VLU network error',
+      503,
+    )
+  }
 
   if (response.status !== 200 || !response.ok) {
+    const location = response.headers.get('location')
+    const bodyPreview = await response.text().catch(() => '[unreadable]')
+    console.error('[VLU fetch] Non-200 response from VLU', {
+      status: response.status,
+      statusText: response.statusText,
+      redirectLocation: location,
+      bodyPreview: bodyPreview.slice(0, 500),
+      url: url.toString(),
+    })
     throw new CalendarServiceError(CalendarServiceErrorCode.CookieExpired, 'VLU session is expired or invalid', 401)
   }
 

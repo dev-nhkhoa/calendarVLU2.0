@@ -47,10 +47,10 @@ export function getStableEventId(item: CalendarType) {
     .toLowerCase()
 }
 
-export function getEventPayloadHash(input: { subject: string; location: string; start: { dateTime: string }; end: { dateTime: string } }) {
+export function getEventPayloadHash(input: { subject: string; location: string | { displayName: string }; start: { dateTime: string }; end: { dateTime: string } }) {
   const payload = JSON.stringify({
     subject: input.subject,
-    location: input.location,
+    location: typeof input.location === 'string' ? input.location : input.location.displayName,
     start: input.start,
     end: input.end,
   })

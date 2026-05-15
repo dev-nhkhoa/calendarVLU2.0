@@ -19,8 +19,6 @@ export const extensionErrorCodeSchema = z.enum([
 
 export type ExtensionErrorCode = z.infer<typeof extensionErrorCodeSchema>
 
-const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>()
-
 export interface ExtensionApiGuardOptions {
   maxBodyBytes?: number
   rateLimit?: {
@@ -30,8 +28,7 @@ export interface ExtensionApiGuardOptions {
   requireOrigin?: boolean
 }
 
-const ALLOWED_CORS_ORIGIN =
-  process.env.EXTENSION_ALLOWED_ORIGINS?.split(',')[0]?.trim() || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+const FALLBACK_CORS_ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 export function extensionJson(data: unknown, init?: ResponseInit, request?: Request) {
   const origin = request?.headers.get('origin') ?? null
@@ -87,8 +84,9 @@ export function extensionError(code: ExtensionErrorCode, message: string, status
 
 export function resolveCorsOrigin(originHeader: string | null, request?: Request): string {
   if (originHeader && isAllowedOrigin(originHeader)) return originHeader
-  if (request && isExtensionClient(request)) return ALLOWED_CORS_ORIGIN
-  return ALLOWED_CORS_ORIGIN
+  if (originHeader) return 'null'
+  if (request && isExtensionClient(request)) return 'null'
+  return getAllowedOrigins()[0] ?? FALLBACK_CORS_ORIGIN
 }
 
 function getRequestId(request: Request) {
@@ -105,8 +103,6 @@ export function getAllowedOrigins() {
 export function isAllowedOrigin(origin: string | null) {
   if (!origin) return false
 
-  if (origin.startsWith('chrome-extension://')) return true
-
   return getAllowedOrigins().includes(origin)
 }
 
@@ -118,23 +114,14 @@ export function getClientKey(request: Request) {
   return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || request.headers.get('origin') || 'unknown'
 }
 
-export function checkRateLimit(key: string, maxRequests: number, windowMs: number) {
-  const now = Date.now()
-  const current = rateLimitBuckets.get(key)
-
-  if (!current || current.resetAt <= now) {
-    rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs })
-    return true
-  }
-
-  if (current.count >= maxRequests) return false
-
-  current.count += 1
-  return true
+export async function checkRateLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
+  const { checkRateLimit: rlCheck } = await import('./rate-limiter')
+  return rlCheck(key, maxRequests, windowMs)
 }
 
-export function resetExtensionRateLimitsForTests() {
-  rateLimitBuckets.clear()
+export async function resetExtensionRateLimitsForTests() {
+  const { resetRateLimitsForTests } = await import('./rate-limiter')
+  resetRateLimitsForTests()
 }
 
 export async function readLimitedJson(request: Request, maxBodyBytes = 64 * 1024) {
@@ -152,16 +139,16 @@ export async function readLimitedJson(request: Request, maxBodyBytes = 64 * 1024
   return JSON.parse(text)
 }
 
-export function guardExtensionRequest(request: Request, options: ExtensionApiGuardOptions = {}) {
+export async function guardExtensionRequest(request: Request, options: ExtensionApiGuardOptions = {}) {
   const requestId = getRequestId(request)
   const origin = request.headers.get('origin')
 
-  if (options.requireOrigin !== false && !isExtensionClient(request) && !isAllowedOrigin(origin)) {
+  if (options.requireOrigin !== false && !isAllowedOrigin(origin)) {
     return { ok: false as const, response: extensionError('ORIGIN_NOT_ALLOWED', 'Origin is not allowed.', 403, requestId, {}, request) }
   }
 
   const rateLimit = options.rateLimit ?? { maxRequests: 60, windowMs: 60_000 }
-  if (!checkRateLimit(getClientKey(request), rateLimit.maxRequests, rateLimit.windowMs)) {
+  if (!(await checkRateLimit(getClientKey(request), rateLimit.maxRequests, rateLimit.windowMs))) {
     return { ok: false as const, response: extensionError('RATE_LIMITED', 'Too many requests. Try again later.', 429, requestId, {}, request) }
   }
 

@@ -1,5 +1,5 @@
 import { parseVluCalendar, deduplicateEvents } from '../calendar-parser'
-import { CalendarServiceError, CalendarServiceErrorCode, ParserWarningCode } from '../errors'
+import { CalendarServiceError, ParserWarningCode } from '../errors'
 import {
   emptySchedule,
   studyRowMissingFields,

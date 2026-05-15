@@ -1,4 +1,4 @@
-import { guardExtensionRequest, readLimitedJson, resetExtensionRateLimitsForTests } from '../extension-api'
+import { guardExtensionRequest, handleOptionsRequest, isAllowedOrigin, readLimitedJson, resetExtensionRateLimitsForTests, resolveCorsOrigin } from '../extension-api'
 
 describe('extension-api guards', () => {
   beforeEach(() => {
@@ -12,7 +12,7 @@ describe('extension-api guards', () => {
       headers: { origin: 'https://evil.test' },
     })
 
-    const guard = guardExtensionRequest(request)
+    const guard = await guardExtensionRequest(request)
 
     expect(guard.ok).toBe(false)
     if (!guard.ok) {
@@ -21,13 +21,51 @@ describe('extension-api guards', () => {
     }
   })
 
-  it('allows chrome extension origins', () => {
+  it('rejects random chrome extension origins unless explicitly allowlisted', async () => {
     const request = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
       method: 'POST',
       headers: { origin: 'chrome-extension://abc123' },
     })
 
-    expect(guardExtensionRequest(request).ok).toBe(true)
+    expect(isAllowedOrigin('chrome-extension://abc123')).toBe(false)
+    expect((await guardExtensionRequest(request)).ok).toBe(false)
+  })
+
+  it('allows exact chrome extension origins from the allowlist', async () => {
+    process.env.EXTENSION_ALLOWED_ORIGINS = 'chrome-extension://prod123,https://calendarvlu.test'
+
+    const request = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
+      method: 'POST',
+      headers: { origin: 'chrome-extension://prod123' },
+    })
+
+    expect(isAllowedOrigin('chrome-extension://prod123')).toBe(true)
+    expect((await guardExtensionRequest(request)).ok).toBe(true)
+  })
+
+  it('does not trust the extension client header as an origin bypass', async () => {
+    const disallowedOrigin = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
+      method: 'POST',
+      headers: { origin: 'https://evil.test', 'X-CalendarVLU-Client': 'extension' },
+    })
+    const missingOrigin = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
+      method: 'POST',
+      headers: { 'X-CalendarVLU-Client': 'extension' },
+    })
+
+    expect((await guardExtensionRequest(disallowedOrigin)).ok).toBe(false)
+    expect((await guardExtensionRequest(missingOrigin)).ok).toBe(false)
+  })
+
+  it('does not return a credentialed CORS origin for disallowed origins', () => {
+    const request = new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
+      method: 'OPTIONS',
+      headers: { origin: 'https://evil.test' },
+    })
+    const response = handleOptionsRequest(request)
+
+    expect(resolveCorsOrigin('https://evil.test', request)).toBe('null')
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('null')
   })
 
   it('rate limits repeated client requests', async () => {
@@ -37,8 +75,8 @@ describe('extension-api guards', () => {
         headers: { origin: 'https://calendarvlu.test' },
       })
 
-    expect(guardExtensionRequest(buildRequest(), { rateLimit: { maxRequests: 1, windowMs: 60_000 } }).ok).toBe(true)
-    const guard = guardExtensionRequest(buildRequest(), { rateLimit: { maxRequests: 1, windowMs: 60_000 } })
+    expect((await guardExtensionRequest(buildRequest(), { rateLimit: { maxRequests: 1, windowMs: 60_000 } })).ok).toBe(true)
+    const guard = await guardExtensionRequest(buildRequest(), { rateLimit: { maxRequests: 1, windowMs: 60_000 } })
 
     expect(guard.ok).toBe(false)
     if (!guard.ok) {

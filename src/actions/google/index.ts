@@ -30,10 +30,10 @@ export async function getAccessToken(): Promise<string | null> {
   const expiresAtMs = googleAccount.expires_at ? googleAccount.expires_at * 1000 : null
   const refreshSkewMs = 60_000
 
-  if (!expiresAtMs || expiresAtMs > Date.now() + refreshSkewMs) return googleAccount.access_token
+  if (expiresAtMs && expiresAtMs > Date.now() + refreshSkewMs) return googleAccount.access_token
 
   if (!googleAccount.refresh_token) {
-    console.warn('[GoogleAuth] Cannot refresh expired Google token: missing refresh token')
+    console.warn('[GoogleAuth] Cannot refresh Google token: missing refresh token or expiry metadata')
     return null
   }
 
@@ -52,6 +52,7 @@ export async function getAccessToken(): Promise<string | null> {
     googleAccount.id,
     refreshResult.access_token,
     typeof refreshResult.expires_in === 'number' ? Math.floor(Date.now() / 1000) + refreshResult.expires_in : undefined,
+    typeof refreshResult.refresh_token === 'string' ? refreshResult.refresh_token : undefined,
   )
 
   if (!updatedAccount) return null
@@ -69,7 +70,7 @@ function isReconnectRequiredOAuthError(error: unknown) {
   return error === 'invalid_grant' || error === 'unauthorized_client'
 }
 
-export async function refreshAccessToken(refreshToken: string) {
+async function refreshAccessToken(refreshToken: string) {
   try {
     const body = new URLSearchParams({
       client_id: process.env.AUTH_GOOGLE_ID!,
@@ -96,10 +97,10 @@ export async function refreshAccessToken(refreshToken: string) {
   }
 }
 
-export async function updateAccessToken(accountId: string, accessToken: string, expiresAt?: number) {
+async function updateAccessToken(accountId: string, accessToken: string, expiresAt?: number, refreshToken?: string) {
   return await prisma.account.update({
     where: { id: accountId },
-    data: { access_token: accessToken, ...(expiresAt ? { expires_at: expiresAt } : {}) },
+    data: { access_token: accessToken, ...(expiresAt ? { expires_at: expiresAt } : {}), ...(refreshToken ? { refresh_token: refreshToken } : {}) },
   })
 }
 

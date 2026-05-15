@@ -9,7 +9,7 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const guard = guardExtensionRequest(request)
+  const guard = await guardExtensionRequest(request)
   if (!guard.ok) return guard.response
 
   try {

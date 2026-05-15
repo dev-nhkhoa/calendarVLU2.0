@@ -14,7 +14,7 @@ interface GoogleCalendarListItem {
 }
 
 export async function GET(request: Request) {
-  const guard = guardExtensionRequest(request)
+  const guard = await guardExtensionRequest(request)
   if (!guard.ok) return guard.response
 
   try {

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CalendarDays, CheckCircle2, Download, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarDays, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import FooterPage from '@/components/footer'
 

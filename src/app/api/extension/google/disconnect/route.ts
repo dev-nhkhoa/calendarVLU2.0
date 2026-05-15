@@ -1,16 +1,27 @@
-import { signOut } from '@/auth'
-import { extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError } from '@/services/extension-api'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/prisma'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError } from '@/services/extension-api'
 
 export async function OPTIONS(request: Request) {
   return handleOptionsRequest(request)
 }
 
 export async function POST(request: Request) {
-  const guard = guardExtensionRequest(request)
+  const guard = await guardExtensionRequest(request)
   if (!guard.ok) return guard.response
 
   try {
-    await signOut({ redirect: false })
+    const session = await auth()
+    if (!session?.user?.email) return extensionError('GOOGLE_NOT_CONNECTED', 'Sign in before disconnecting Google Calendar.', 401, guard.requestId, {}, request)
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) return extensionError('GOOGLE_NOT_CONNECTED', 'User not found.', 401, guard.requestId, {}, request)
+
+    await prisma.account.updateMany({
+      where: { userId: user.id, provider: 'google' },
+      data: { access_token: null, refresh_token: null },
+    })
+
     return extensionJson({ ok: true, disconnected: true }, undefined, request)
   } catch (error) {
     return mapUnknownError(error, guard.requestId, request)

@@ -70,9 +70,6 @@ function getStableUid(event: CalendarType): string {
 }
 
 export function calendar2Ical(calendars: CalendarType[]): string {
-  const now = new Date()
-  const timestamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-
   const parts: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

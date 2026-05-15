@@ -4,7 +4,7 @@
 - [ ] Rate limiting configured for all extension API endpoints (60 req/min per client)
 - [ ] Request size limits enforced (64 KB max for POST bodies)
 - [ ] CORS allowlist configured (EXTENSION_ALLOWED_ORIGINS)
-- [ ] Only chrome-extension:// origins allowed for extension APIs
+- [ ] Only exact allowlisted extension/app origins are allowed for extension APIs; no wildcard chrome-extension:// trust
 - [ ] HTTPS enforced (no HTTP access in production)
 - [ ] Security headers set (X-Content-Type-Options, X-Frame-Options, Referrer-Policy)
 - [ ] Cookies and tokens never appear in logs (audit logger redacts sensitive data)
@@ -18,7 +18,7 @@
 - [ ] Health endpoint returns correct status (/api/extension/health)
 - [ ] Sitemap and robots.txt accessible
 - [ ] Privacy Policy and Terms routes accessible
-- [ ] Rate limit in-memory store is adequate for expected load
+- [ ] Rate limit backed by Upstash Redis (shared across instances, persistent across cold starts)
 
 ## Monitoring (S8-TC07)
 - [ ] Failure counters track VLU fetch failures, parser failures, Google sync failures
@@ -58,5 +58,5 @@
 
 ## Known Limitations
 - Parser depends on VLU HTML structure — if VLU changes their site, the parser may fail and require a hotfix.
-- Rate limits are in-memory (not shared across instances) — multi-instance deployments need a Redis-backed store.
+- Rate limits are backed by Upstash Redis with in-memory fallback (circuit breaker pattern) — single-instance / dev fallback to memory if Redis is unavailable.
 - Extension-only flow means users must be on a desktop browser with Chrome. Mobile/tablet users cannot use the extension.

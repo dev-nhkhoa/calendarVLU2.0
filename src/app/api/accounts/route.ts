@@ -1,5 +1,6 @@
 import { deleteAccount, getUserByEmail } from '@/actions/auth'
 import { auth } from '@/auth'
+import { toAccountConnection } from '@/services/account-connections'
 import { NextRequest } from 'next/server'
 
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
   const user = await getUserByEmail(email)
   if (!user) return Response.json({ error: 'User not found!' }, { status: 404 })
 
-  return Response.json(user.accounts, { status: 200 })
+  return Response.json(user.accounts.map(toAccountConnection), { status: 200 })
 }
 
 export async function DELETE(req: NextRequest) {

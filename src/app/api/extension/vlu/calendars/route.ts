@@ -11,7 +11,7 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const guard = guardExtensionRequest(request)
+  const guard = await guardExtensionRequest(request)
   if (!guard.ok) return guard.response
 
   try {
@@ -21,14 +21,14 @@ export async function POST(request: Request) {
     const allWarnings: ParserWarning[] = []
 
     if (body.filters.types.includes('study')) {
-      const rawStudy = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichHoc', baseUrl: body.vlu.baseUrl })
+      const rawStudy = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichHoc' })
       const result = parseVluCalendar(rawStudy, body.filters.yearStudy, 'lichHoc')
       events.push(...result.data)
       allWarnings.push(...result.warnings)
     }
 
     if (body.filters.types.includes('exam')) {
-      const rawExam = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichThi', baseUrl: body.vlu.baseUrl })
+      const rawExam = await fetchRawVluCalendar({ cookie, termId: body.filters.termId, yearStudy: body.filters.yearStudy, lichType: 'lichThi' })
       const result = parseVluCalendar(rawExam, body.filters.yearStudy, 'lichThi')
       events.push(...result.data)
       allWarnings.push(...result.warnings)

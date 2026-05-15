@@ -36,7 +36,6 @@ export const vluCookieSchema = z.object({
 })
 
 export const extensionVluInputSchema = z.object({
-  baseUrl: z.string().url().optional(),
   cookies: z.array(vluCookieSchema).min(1),
 })
 

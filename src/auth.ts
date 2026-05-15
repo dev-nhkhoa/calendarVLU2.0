@@ -1,13 +1,13 @@
-import NextAuth from 'next-auth'
+import NextAuth, { type NextAuthConfig } from 'next-auth'
 import Google from 'next-auth/providers/google'
 import MicrosoftEntraID from 'next-auth/providers/microsoft-entra-id'
-import Credentials from 'next-auth/providers/credentials'
 
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
-import { getUserByEmail } from './actions/auth'
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const microsoftTenantId = process.env.AUTH_MICROSOFT_TENANT_ID || 'common'
+
+export const authConfig = {
   adapter: PrismaAdapter(prisma),
   pages: {
     signIn: '/auth/sign-in',
@@ -21,21 +21,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       options: {
         httpOnly: true,
         sameSite: 'none',
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         path: '/',
       },
-    },
-  },
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account?.access_token) {
-        token.accessToken = account.access_token
-      }
-      return token
-    },
-    async session({ session, token }) {
-      session.sessionToken = token.accessToken as string
-      return session
     },
   },
   providers: [
@@ -51,26 +39,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     MicrosoftEntraID({
       clientId: process.env.AUTH_MICROSOFT_ID!,
       clientSecret: process.env.AUTH_MICROSOFT_SECRET!,
-      tenantId: process.env.AUTH_MICROSOFT_TENANT_ID || 'common',
+      issuer: `https://login.microsoftonline.com/${microsoftTenantId}/v2.0`,
       authorization: {
         params: {
           scope: 'openid profile email User.Read Calendars.ReadWrite offline_access',
         },
       },
     }),
-    Credentials({
-      credentials: {
-        userEmail: {},
-      },
-      authorize: async (credentials) => {
-        const { userEmail } = credentials as { userEmail: string }
-
-        const user = await getUserByEmail(userEmail)
-
-        if (!user) return null
-
-        return user
-      },
-    }),
   ],
-})
+} satisfies NextAuthConfig
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authConfig)

@@ -9,6 +9,7 @@ describe('POST /api/extension/vlu/calendars', () => {
   beforeEach(() => {
     resetExtensionRateLimitsForTests()
     process.env.EXTENSION_ALLOWED_ORIGINS = 'https://calendarvlu.test'
+    process.env.VLU_HOME_URL = 'https://online.vlu.edu.vn/Home'
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -23,7 +24,7 @@ describe('POST /api/extension/vlu/calendars', () => {
         headers: { origin: 'https://calendarvlu.test' },
         body: JSON.stringify({
           vlu: {
-            baseUrl: 'https://online.vlu.edu.vn',
+            baseUrl: 'https://evil.test/steal-cookies',
             cookies: [{ name: 'ASP.NET_SessionId', value: 'secret-cookie' }],
           },
           filters: {
@@ -42,9 +43,10 @@ describe('POST /api/extension/vlu/calendars', () => {
       events: [{ summary: 'Lap Trinh Web', startDate: '08/09/2025' }],
     })
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://online.vlu.edu.vn/DrawingStudentSchedule_Perior?YearStudy=2025-2026&TermID=HK01',
+      'https://online.vlu.edu.vn/Home/DrawingStudentSchedule_Perior?YearStudy=2025-2026&TermID=HK01',
       expect.objectContaining({ headers: { Cookie: 'ASP.NET_SessionId=secret-cookie' } }),
     )
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).not.toContain('evil.test')
   })
 
   it('maps expired VLU sessions to COOKIE_EXPIRED without returning raw cookies', async () => {
@@ -56,7 +58,7 @@ describe('POST /api/extension/vlu/calendars', () => {
         headers: { origin: 'https://calendarvlu.test' },
         body: JSON.stringify({
           vlu: {
-            baseUrl: 'https://online.vlu.edu.vn',
+            baseUrl: 'https://evil.test/steal-cookies',
             cookies: [{ name: 'ASP.NET_SessionId', value: 'secret-cookie' }],
           },
           filters: {

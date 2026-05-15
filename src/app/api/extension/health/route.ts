@@ -1,4 +1,4 @@
-import { extensionJson, handleOptionsRequest } from '@/services/extension-api'
+import { extensionJson, guardExtensionRequest, handleOptionsRequest } from '@/services/extension-api'
 import { getFailureCounters } from '@/services/audit-logger'
 
 export async function OPTIONS(request: Request) {
@@ -6,6 +6,9 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const guard = await guardExtensionRequest(request)
+  if (!guard.ok) return guard.response
+
   const counters = getFailureCounters()
 
   const status = counters.vluFetchFailures > 5 || counters.parserFailures > 5 ? 'degraded' : 'healthy'
@@ -23,6 +26,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const guard = await guardExtensionRequest(request)
+  if (!guard.ok) return guard.response
+
   return extensionJson({
     ok: false,
     error: { code: 'METHOD_NOT_ALLOWED', message: 'Use GET for health check.' },

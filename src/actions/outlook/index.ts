@@ -29,7 +29,7 @@ export async function getOutlookAccessToken(): Promise<string | null> {
   return msAccount.access_token
 }
 
-export async function refreshOutlookAccessToken(refreshToken: string) {
+async function refreshOutlookAccessToken(refreshToken: string) {
   try {
     const response = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
       method: 'POST',
@@ -48,7 +48,7 @@ export async function refreshOutlookAccessToken(refreshToken: string) {
   }
 }
 
-export async function updateOutlookAccessToken(accountId: string, accessToken: string, refreshToken?: string, expiresIn?: number) {
+async function updateOutlookAccessToken(accountId: string, accessToken: string, refreshToken?: string, expiresIn?: number) {
   const data: Record<string, string | number> = { access_token: accessToken }
   if (refreshToken) data.refresh_token = refreshToken
   if (expiresIn) data.expires_at = Math.floor(Date.now() / 1000) + expiresIn

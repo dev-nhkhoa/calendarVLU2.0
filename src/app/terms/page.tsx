@@ -69,7 +69,7 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-3 text-base font-semibold text-black">6. Giới hạn trách nhiệm</h2>
             <p>
-              Dịch vụ được cung cấp "như hiện trạng" (as is) mà không có bảo đảm nào.
+              Dịch vụ được cung cấp &quot;như hiện trạng&quot; (as is) mà không có bảo đảm nào.
               Chúng tôi không chịu trách nhiệm cho bất kỳ thiệt hại nào phát sinh từ việc sử dụng dịch vụ, bao gồm dữ liệu lịch không chính xác, mất dữ liệu, hoặc thời gian chết của dịch vụ.
               Dịch vụ phụ thuộc vào hệ thống của VLU và Google, do đó chúng tôi không thể bảo đảm tính khả dụng liên tục.
             </p>

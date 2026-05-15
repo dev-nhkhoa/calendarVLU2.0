@@ -31,16 +31,9 @@ export function SignInForm() {
         >
           Tài khoản Google
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setIsLoading(true)
-            signIn('microsoft-entra-id', { callbackUrl })
-          }}
-          disabled={isLoading}
-        >
-          Tài khoản Microsoft
-        </Button>
+        {/*
+          Microsoft login temporarily hidden — Azure app registration pending.
+        */}
       </div>
     </div>
   )

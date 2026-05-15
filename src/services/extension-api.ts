@@ -209,6 +209,15 @@ export async function guardExtensionRequest(request: Request, options: Extension
   const origin = request.headers.get('origin')
 
   if (options.requireOrigin !== false && !isAllowedOrigin(origin) && !isAllowedExtensionClientWithoutOrigin(request)) {
+    console.warn('[ExtensionAPI] Origin rejected', {
+      requestId,
+      origin,
+      allowedOrigins: getAllowedOrigins(),
+      client: request.headers.get('x-calendarvlu-client') ?? null,
+      host: request.headers.get('host') ?? null,
+      forwardedHost: request.headers.get('x-forwarded-host') ?? null,
+    })
+
     return { ok: false as const, response: extensionError('ORIGIN_NOT_ALLOWED', 'Origin is not allowed.', 403, requestId, {}, request) }
   }
 

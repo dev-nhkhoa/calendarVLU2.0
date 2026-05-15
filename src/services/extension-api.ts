@@ -94,7 +94,17 @@ function getRequestId(request: Request) {
 }
 
 export function getAllowedOrigins() {
-  return (process.env.EXTENSION_ALLOWED_ORIGINS ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000')
+  let originsString = process.env.EXTENSION_ALLOWED_ORIGINS
+
+  if (!originsString) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('EXTENSION_ALLOWED_ORIGINS must be configured in production')
+    }
+    // Fallback for development
+    originsString = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  }
+
+  return originsString
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean)
@@ -130,12 +140,48 @@ export async function readLimitedJson(request: Request, maxBodyBytes = 64 * 1024
     throw new Error('REQUEST_TOO_LARGE')
   }
 
-  const text = await request.text()
-  if (new TextEncoder().encode(text).length > maxBodyBytes) {
-    throw new Error('REQUEST_TOO_LARGE')
+  let totalBytes = 0
+  const chunks: Uint8Array[] = []
+  const reader = request.body?.getReader()
+
+  if (!reader) {
+    // No body
+    return {}
   }
 
-  if (!text) return {}
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+
+      if (done) break
+
+      if (value) {
+        totalBytes += value.length
+        if (totalBytes > maxBodyBytes) {
+          await reader.cancel()
+          throw new Error('REQUEST_TOO_LARGE')
+        }
+        chunks.push(value)
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+
+  if (chunks.length === 0) {
+    return {}
+  }
+
+  // Combine chunks
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+  const combined = new Uint8Array(totalLength)
+  let offset = 0
+  for (const chunk of chunks) {
+    combined.set(chunk, offset)
+    offset += chunk.length
+  }
+
+  const text = new TextDecoder().decode(combined)
   return JSON.parse(text)
 }
 

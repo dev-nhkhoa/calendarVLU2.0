@@ -1,7 +1,74 @@
-/**
- * Redacted audit logger for production observability.
- * Never logs cookies, tokens, passwords, or raw response bodies.
- */
+import { Redis } from '@upstash/redis'
+
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
+
+const redis = UPSTASH_URL && UPSTASH_TOKEN ? new Redis({ url: UPSTASH_URL, token: UPSTASH_TOKEN }) : null
+
+const FAILURE_COUNTER_KEY = 'audit:failure_counters'
+
+let redisAvailable = redis !== null
+let lastRedisCheck = 0
+const REDIS_CHECK_INTERVAL = 30_000
+
+const inMemoryCounters = {
+  vluFetchFailures: 0,
+  parserFailures: 0,
+  googleSyncFailures: 0,
+  totalRequests: 0,
+  lastFailure: null as { action: string; message: string; time: string } | null,
+}
+
+interface FailureCounterData {
+  vluFetchFailures: number
+  parserFailures: number
+  googleSyncFailures: number
+  totalRequests: number
+  lastFailure: { action: string; message: string; time: string } | null
+}
+
+function getRedis(): Redis | null {
+  if (!redis) return null
+  if (!redisAvailable) {
+    if (Date.now() - lastRedisCheck < REDIS_CHECK_INTERVAL) return null
+    lastRedisCheck = Date.now()
+    return redis
+  }
+  return redis
+}
+
+async function persistCounter(key: string, value: number): Promise<void> {
+  const r = getRedis()
+  if (!r) return
+  try {
+    await r.hset(FAILURE_COUNTER_KEY, { [key]: value })
+    redisAvailable = true
+  } catch {
+    redisAvailable = false
+    lastRedisCheck = Date.now()
+  }
+}
+
+async function readRedisCounters(): Promise<FailureCounterData | null> {
+  const r = getRedis()
+  if (!r) return null
+  try {
+    const data = await r.hgetall(FAILURE_COUNTER_KEY) as Record<string, unknown> | null
+    redisAvailable = true
+    if (!data) return null
+    return {
+      vluFetchFailures: Number(data.vluFetchFailures) || 0,
+      parserFailures: Number(data.parserFailures) || 0,
+      googleSyncFailures: Number(data.googleSyncFailures) || 0,
+      totalRequests: Number(data.totalRequests) || 0,
+      lastFailure: data.lastFailure ? JSON.parse(data.lastFailure as string) : null,
+    }
+  } catch {
+    redisAvailable = false
+    lastRedisCheck = Date.now()
+    return null
+  }
+}
 
 export interface AuditEntry {
   timestamp: string
@@ -20,14 +87,6 @@ export interface FailureCounter {
   googleSyncFailures: number
   totalRequests: number
   lastFailure: { action: string; message: string; time: string } | null
-}
-
-const failureCounters: FailureCounter = {
-  vluFetchFailures: 0,
-  parserFailures: 0,
-  googleSyncFailures: 0,
-  totalRequests: 0,
-  lastFailure: null,
 }
 
 function redactHeaders(headers: Record<string, string>): Record<string, string> {
@@ -58,7 +117,8 @@ function redactedUrl(url: string): string {
 }
 
 export function logAuditEntry(entry: AuditEntry): void {
-  failureCounters.totalRequests += 1
+  inMemoryCounters.totalRequests += 1
+  persistCounter('totalRequests', inMemoryCounters.totalRequests)
 
   if (process.env.NODE_ENV === 'production' || process.env.AUDIT_LOG === '1') {
     const safeEntry = {
@@ -72,25 +132,41 @@ export function logAuditEntry(entry: AuditEntry): void {
 
 export function recordFailure(action: string, message: string): void {
   const time = new Date().toISOString()
-  failureCounters.lastFailure = { action, message, time }
+  inMemoryCounters.lastFailure = { action, message, time }
 
-  if (action === 'vlu_fetch') failureCounters.vluFetchFailures += 1
-  else if (action === 'parser') failureCounters.parserFailures += 1
-  else if (action === 'google_sync') failureCounters.googleSyncFailures += 1
+  if (action === 'vlu_fetch') {
+    inMemoryCounters.vluFetchFailures += 1
+    persistCounter('vluFetchFailures', inMemoryCounters.vluFetchFailures)
+  } else if (action === 'parser') {
+    inMemoryCounters.parserFailures += 1
+    persistCounter('parserFailures', inMemoryCounters.parserFailures)
+  } else if (action === 'google_sync') {
+    inMemoryCounters.googleSyncFailures += 1
+    persistCounter('googleSyncFailures', inMemoryCounters.googleSyncFailures)
+  }
 
   console.warn(JSON.stringify({ type: 'failure', action, message, time }))
 }
 
-export function getFailureCounters(): FailureCounter {
-  return { ...failureCounters }
+export async function getFailureCounters(): Promise<FailureCounter> {
+  const redisCounters = await readRedisCounters()
+  if (redisCounters) {
+    inMemoryCounters.vluFetchFailures = redisCounters.vluFetchFailures
+    inMemoryCounters.parserFailures = redisCounters.parserFailures
+    inMemoryCounters.googleSyncFailures = redisCounters.googleSyncFailures
+    inMemoryCounters.totalRequests = redisCounters.totalRequests
+    inMemoryCounters.lastFailure = redisCounters.lastFailure
+    return { ...redisCounters }
+  }
+  return { ...inMemoryCounters }
 }
 
 export function resetFailureCountersForTests(): void {
-  failureCounters.vluFetchFailures = 0
-  failureCounters.parserFailures = 0
-  failureCounters.googleSyncFailures = 0
-  failureCounters.totalRequests = 0
-  failureCounters.lastFailure = null
+  inMemoryCounters.vluFetchFailures = 0
+  inMemoryCounters.parserFailures = 0
+  inMemoryCounters.googleSyncFailures = 0
+  inMemoryCounters.totalRequests = 0
+  inMemoryCounters.lastFailure = null
 }
 
 export { redactHeaders, redactedUrl }

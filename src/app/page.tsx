@@ -41,11 +41,11 @@ export default function LandingPage() {
                   <Download className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full border-black/15 bg-transparent px-6">
-                <Link href="https://chromewebstore.google.com/" target="_blank" rel="noreferrer">
-                  Cài đặt từ Chrome Web Store
+              <Button asChild size="lg" variant="outline" className="rounded-full border-black/15 bg-transparent px-6" disabled>
+                <span>
+                  Chrome Web Store — Coming soon
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </span>
               </Button>
             </div>
 

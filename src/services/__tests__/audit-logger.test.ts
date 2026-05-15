@@ -26,32 +26,32 @@ describe('failure counting', () => {
     resetFailureCountersForTests()
   })
 
-  it('tracks VLU fetch failures', () => {
+  it('tracks VLU fetch failures', async () => {
     recordFailure('vlu_fetch', 'VLU unavailable')
-    const counters = getFailureCounters()
+    const counters = await getFailureCounters()
     expect(counters.vluFetchFailures).toBe(1)
     expect(counters.lastFailure?.action).toBe('vlu_fetch')
   })
 
-  it('tracks parser failures', () => {
+  it('tracks parser failures', async () => {
     recordFailure('parser', 'Invalid HTML')
-    expect(getFailureCounters().parserFailures).toBe(1)
+    expect((await getFailureCounters()).parserFailures).toBe(1)
   })
 
-  it('tracks Google sync failures', () => {
+  it('tracks Google sync failures', async () => {
     recordFailure('google_sync', 'Token expired')
-    expect(getFailureCounters().googleSyncFailures).toBe(1)
+    expect((await getFailureCounters()).googleSyncFailures).toBe(1)
   })
 
-  it('tracks total requests via audit logs', () => {
+  it('tracks total requests via audit logs', async () => {
     logAuditEntry({ action: 'fetch_calendar', status: 200, durationMs: 100, timestamp: new Date().toISOString() })
-    expect(getFailureCounters().totalRequests).toBe(1)
+    expect((await getFailureCounters()).totalRequests).toBe(1)
   })
 
-  it('resets counters for tests', () => {
+  it('resets counters for tests', async () => {
     recordFailure('vlu_fetch', 'err')
     resetFailureCountersForTests()
-    const counters = getFailureCounters()
+    const counters = await getFailureCounters()
     expect(counters.vluFetchFailures).toBe(0)
     expect(counters.parserFailures).toBe(0)
     expect(counters.googleSyncFailures).toBe(0)

@@ -18,6 +18,8 @@ export enum CalendarServiceErrorCode {
   InvalidResponseFormat = 'INVALID_RESPONSE_FORMAT',
   /** No table rows (<tr>) found in the response */
   NoTableRows = 'NO_TABLE_ROWS',
+  /** Cookie value contains invalid characters per RFC 6265 */
+  InvalidCookie = 'INVALID_COOKIE',
 }
 
 /**

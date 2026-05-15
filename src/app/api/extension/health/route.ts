@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const guard = await guardExtensionRequest(request)
   if (!guard.ok) return guard.response
 
-  const counters = getFailureCounters()
+  const counters = await getFailureCounters()
 
   const status = counters.vluFetchFailures > 5 || counters.parserFailures > 5 ? 'degraded' : 'healthy'
 

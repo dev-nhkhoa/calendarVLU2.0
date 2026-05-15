@@ -59,43 +59,35 @@ export function formatText(text: string | null): string | undefined {
 }
 
 export function getMondayDate(yearStudy: string, week: number) {
-  // Kiểm tra xem yearStudy có tồn tại trong defaultDateOfWeek không
   if (!defaultDateOfWeek[yearStudy]) throw new Error('Year study not found')
 
-  // Lấy ngày thứ 2 đầu tiên của năm học
   const firstMonday = defaultDateOfWeek[yearStudy][0]
   const [day, month, year] = firstMonday.split('/').map(Number)
 
-  // Tạo đối tượng Date từ ngày thứ 2 đầu tiên
-  const firstMondayDate = new Date(year, month - 1, day)
+  const firstMondayDate = new Date(Date.UTC(year, month - 1, day))
 
-  // Tính toán ngày bắt đầu của tuần được yêu cầu
   const targetMonday = new Date(firstMondayDate)
-  targetMonday.setDate(firstMondayDate.getDate() + (week - 1) * 7)
+  targetMonday.setUTCDate(firstMondayDate.getUTCDate() + (week - 1) * 7)
 
-  // Tính toán ngày Chủ Nhật của tuần đó
   const targetSunday = new Date(targetMonday)
-  targetSunday.setDate(targetMonday.getDate() + 6)
+  targetSunday.setUTCDate(targetMonday.getUTCDate() + 6)
 
-  // Định dạng ngày thành dd/mm/yyyy
   const formatDate = (date: Date) => {
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`
+    return `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`
   }
 
-  // Trả về mảng chứa ngày thứ 2 và Chủ Nhật
   return [formatDate(targetMonday), formatDate(targetSunday)]
 }
 
-// Lấy ngày chính xác từ ngày thứ 2 và tên ngày trong tuần
 export function getExactDate(monday: string, day: string) {
   const formatedDay = day.trim()
   if (!dayOfWeek[formatedDay]) {
     throw new Error('Invalid day of week')
   }
   const [dayM, monthM, yearM] = monday.split('/').map(Number)
-  const mondayDate = new Date(yearM, monthM - 1, dayM)
+  const mondayDate = new Date(Date.UTC(yearM, monthM - 1, dayM))
   const targetDate = new Date(mondayDate)
   const dayNumber = dayOfWeek[formatedDay]
-  targetDate.setDate(mondayDate.getDate() + dayNumber - 1)
-  return `${String(targetDate.getDate()).padStart(2, '0')}/${String(targetDate.getMonth() + 1).padStart(2, '0')}/${targetDate.getFullYear()}`
+  targetDate.setUTCDate(mondayDate.getUTCDate() + dayNumber - 1)
+  return `${String(targetDate.getUTCDate()).padStart(2, '0')}/${String(targetDate.getUTCMonth() + 1).padStart(2, '0')}/${targetDate.getUTCFullYear()}`
 }

@@ -132,7 +132,7 @@ export function isAllowedOrigin(origin: string | null) {
 }
 
 function isAllowedExtensionClientWithoutOrigin(request: Request) {
-  return isDevelopment() && !request.headers.get('origin') && isExtensionClient(request)
+  return !request.headers.get('origin') && isExtensionClient(request)
 }
 
 export function isExtensionClient(request: Request) {

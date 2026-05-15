@@ -1,10 +1,14 @@
 import { extensionCalendarsRequestSchema, formatCookieHeader } from '@/services/calendar-types'
-import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { CalendarServiceError, CalendarServiceErrorCode, ParserWarning } from '@/services/errors'
 import { parseVluCalendar } from '@/services/calendar-parser'
 import { fetchRawVluCalendar } from '@/services/vlu-client'
 import { CalendarType } from '@/types/calendar'
 import { ZodError } from 'zod'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function POST(request: Request) {
   const guard = guardExtensionRequest(request)

@@ -1,9 +1,13 @@
 import { fetchRawVluCalendar } from '@/services/vlu-client'
 import { checkSessionRequestSchema, formatCookieHeader } from '@/services/calendar-types'
-import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import { CalendarServiceError, CalendarServiceErrorCode } from '@/services/errors'
 import { ZodError } from 'zod'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function POST(request: Request) {
   const guard = guardExtensionRequest(request)

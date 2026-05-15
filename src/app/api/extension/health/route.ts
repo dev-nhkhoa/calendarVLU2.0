@@ -1,5 +1,9 @@
-import { extensionJson } from '@/services/extension-api'
+import { extensionJson, handleOptionsRequest } from '@/services/extension-api'
 import { getFailureCounters } from '@/services/audit-logger'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function GET(request: Request) {
   const counters = getFailureCounters()

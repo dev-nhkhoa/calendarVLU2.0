@@ -1,8 +1,12 @@
 import { getAccessToken } from '@/actions/google'
 import { extensionGoogleImportRequestSchema } from '@/services/calendar-types'
-import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { importGoogleCalendarEvents } from '@/services/google-calendar-service'
 import { ZodError } from 'zod'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function POST(request: Request) {
   const guard = guardExtensionRequest(request)
@@ -12,7 +16,7 @@ export async function POST(request: Request) {
     const body = extensionGoogleImportRequestSchema.parse(await readLimitedJson(request, 256 * 1024))
     const accessToken = await getAccessToken()
 
-    if (!accessToken) return extensionError('GOOGLE_NOT_CONNECTED', 'Connect Google Calendar before importing events.', 401, guard.requestId, {}, request)
+    if (!accessToken) return extensionError('GOOGLE_NOT_CONNECTED', 'Reconnect Google Calendar before importing events.', 401, guard.requestId, {}, request)
 
     const report = await importGoogleCalendarEvents({
       accessToken,

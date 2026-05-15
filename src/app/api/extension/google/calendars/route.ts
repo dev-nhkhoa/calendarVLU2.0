@@ -1,5 +1,9 @@
 import { getAccessToken } from '@/actions/google'
-import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError } from '@/services/extension-api'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError } from '@/services/extension-api'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 interface GoogleCalendarListItem {
   id: string
@@ -15,7 +19,7 @@ export async function GET(request: Request) {
 
   try {
     const accessToken = await getAccessToken()
-    if (!accessToken) return extensionError('GOOGLE_NOT_CONNECTED', 'Connect Google Calendar before listing calendars.', 401, guard.requestId, {}, request)
+    if (!accessToken) return extensionError('GOOGLE_NOT_CONNECTED', 'Reconnect Google Calendar before listing calendars.', 401, guard.requestId, {}, request)
 
     const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
       headers: { Authorization: `Bearer ${accessToken}` },

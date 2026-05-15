@@ -1,6 +1,10 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
-import { extensionJson, guardExtensionRequest, mapUnknownError } from '@/services/extension-api'
+import { extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError } from '@/services/extension-api'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function GET(request: Request) {
   const guard = guardExtensionRequest(request)
@@ -14,10 +18,10 @@ export async function GET(request: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { accounts: { where: { provider: 'google' } } },
+      include: { accounts: { where: { provider: 'google' }, orderBy: { updatedAt: 'desc' } } },
     })
 
-    const googleAccount = user?.accounts?.[0] ?? null
+    const googleAccount = user?.accounts?.find((account) => account.access_token) ?? null
     const connected = Boolean(googleAccount?.access_token)
 
     return extensionJson({

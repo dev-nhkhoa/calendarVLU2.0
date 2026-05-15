@@ -1,7 +1,11 @@
 import { extensionIcalRequestSchema } from '@/services/calendar-types'
 import { calendar2Ical } from '@/services/ical-export-service'
-import { extensionError, extensionJson, guardExtensionRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
+import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { ZodError } from 'zod'
+
+export async function OPTIONS(request: Request) {
+  return handleOptionsRequest(request)
+}
 
 export async function POST(request: Request) {
   const guard = guardExtensionRequest(request)

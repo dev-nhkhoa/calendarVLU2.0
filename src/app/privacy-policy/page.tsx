@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="mb-3 text-base font-semibold text-black">1. Giới thiệu</h2>
             <p>
-              CalendarVLU là công cụ giúp sinh viên trường Đại học Văn Lang (VLU) import lịch học và lịch thi từ cổng thông tin VLU lên Google Calendar hoặc Outlook.
+              CalendarVLU là công cụ giúp sinh viên trường Đại học Văn Lang (VLU) import lịch học và lịch thi từ cổng thông tin VLU lên Google Calendar.
               Chúng tôi cam kết bảo vệ quyền riêng tư của bạn. Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu của bạn.
             </p>
           </section>
@@ -43,7 +43,13 @@ export default function PrivacyPolicy() {
               <div>
                 <h3 className="font-medium text-black">Dữ liệu lịch VLU</h3>
                 <p className="mt-1">
-                  Lịch học và lịch thi được lấy từ cổng thông tin VLU sau khi bạn đăng nhập. Dữ liệu này chỉ được xử lý trong bộ nhớ tạm thời và không được lưu trữ trên máy chủ của chúng tôi.
+                  Lịch học và lịch thi được lấy từ cổng thông tin VLU sau khi bạn đăng nhập. Dữ liệu này có thể bao gồm tên môn học, thời gian học hoặc thi, phòng học, giảng viên, mô tả lớp học, và các mã định danh sự kiện cần thiết để xuất file hoặc đồng bộ lịch.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-black">Cookie phiên VLU</h3>
+                <p className="mt-1">
+                  Tiện ích Chrome đọc một số cookie phiên VLU có sẵn trong trình duyệt của bạn, ví dụ ASP.NET_SessionId và cookie xác thực khi có. Cookie chỉ được gửi tạm thời đến máy chủ CalendarVLU qua HTTPS để kiểm tra phiên đăng nhập và lấy dữ liệu lịch theo yêu cầu của bạn. CalendarVLU không yêu cầu, không thu thập, và không lưu mật khẩu VLU.
                 </p>
               </div>
             </div>
@@ -54,7 +60,8 @@ export default function PrivacyPolicy() {
             <ul className="list-disc space-y-1 pl-5">
               <li>Email và tên: Dùng để xác thực và hiển thị thông tin tài khoản.</li>
               <li>OAuth tokens: Dùng để đồng bộ sự kiện lịch lên Google Calendar theo yêu cầu của bạn.</li>
-              <li>Dữ liệu lịch VLU: Xử lý để tạo sự kiện trên Google Calendar hoặc xuất file CSV. Không lưu trữ.</li>
+              <li>Cookie phiên VLU: Chỉ dùng để lấy lịch VLU trong từng yêu cầu, không dùng để đăng nhập thay bạn ngoài mục đích lấy lịch.</li>
+              <li>Dữ liệu lịch VLU: Xử lý để tạo sự kiện trên Google Calendar hoặc xuất file CSV/iCal. Dữ liệu lịch không được lưu lâu dài trên máy chủ CalendarVLU.</li>
             </ul>
           </section>
 
@@ -63,8 +70,9 @@ export default function PrivacyPolicy() {
             <ul className="list-disc space-y-1 pl-5">
               <li>OAuth tokens (access token, refresh token) được lưu trữ trong cơ sở dữ liệu MongoDB qua Prisma, chỉ dùng cho mục đích đồng bộ Google Calendar.</li>
               <li>Tokens được làm mới định kỳ và có thể bị thu hồi bất kỳ lúc nào qua trang quản lý tài khoản Google của bạn.</li>
-              <li>Chúng tôi không lưu trữ mật khẩu VLU, dữ liệu lịch VLU, hoặc bất kỳ thông tin nhạy cảm nào khác.</li>
-              <li>Kết nối đến Google API sử dụng HTTPS mã hóa.</li>
+              <li>Cookie VLU và dữ liệu lịch VLU được xử lý tạm thời trong quá trình request để trả kết quả, xuất file, hoặc gửi sự kiện sang Google Calendar theo thao tác của bạn.</li>
+              <li>Chúng tôi không lưu trữ mật khẩu VLU và không lưu cookie VLU lâu dài.</li>
+              <li>Kết nối giữa tiện ích, máy chủ CalendarVLU, VLU, và Google API sử dụng HTTPS khi truyền dữ liệu trong production.</li>
             </ul>
           </section>
 
@@ -76,6 +84,7 @@ export default function PrivacyPolicy() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li><strong>Google API</strong> — Để đồng bộ lịch theo yêu cầu của bạn.</li>
               <li><strong>VLU (online.vlu.edu.vn)</strong> — Để lấy dữ liệu lịch học và lịch thi.</li>
+              <li><strong>Máy chủ CalendarVLU</strong> — Để xử lý cookie phiên VLU, chuẩn hóa dữ liệu lịch, xuất file CSV/iCal, và gọi Google Calendar API theo yêu cầu của bạn.</li>
             </ul>
           </section>
 
@@ -83,15 +92,18 @@ export default function PrivacyPolicy() {
             <h2 className="mb-3 text-base font-semibold text-black">6. Quyền của bạn</h2>
             <ul className="list-disc space-y-1 pl-5">
               <li>Bạn có thể thu hồi quyền truy cập Google bất kỳ lúc qua <a href="https://myaccount.google.com/permissions" target="_blank" rel="noreferrer" className="underline">myaccount.google.com/permissions</a>.</li>
-              <li>Bạn có thể yêu cầu xóa toàn bộ dữ liệu tài khoản bằng cách liên hệ với chúng tôi.</li>
-              <li>Bạn có thể tải xuống lịch dưới dạng file CSV bất kỳ lúc nào.</li>
+              <li>Bạn có thể ngắt kết nối Google Calendar từ tiện ích hoặc yêu cầu xóa toàn bộ dữ liệu tài khoản bằng cách liên hệ với chúng tôi.</li>
+              <li>Bạn có thể tải xuống lịch dưới dạng file CSV hoặc iCal bất kỳ lúc nào.</li>
             </ul>
           </section>
 
           <section>
             <h2 className="mb-3 text-base font-semibold text-black">7. Tuân thủ Google API Services User Data Policy</h2>
             <p>
-              CalendarVLU tuân thủ <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="underline">Google API Services User Data Policy</a>, bao gồm các yêu cầu về Limited Use. Dữ liệu người dùng thu thập qua Google API chỉ được sử dụng để cung cấp và cải thiện chức năng đồng bộ lịch, không được chuyển sang bên thứ ba hoặc sử dụng cho mục đích khác ngoài mô tả trong chính sách này.
+              CalendarVLU tuân thủ <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="underline">Google API Services User Data Policy</a>, bao gồm các yêu cầu về Limited Use. Việc CalendarVLU sử dụng và chuyển giao thông tin nhận được từ Google APIs sẽ tuân thủ Chrome Web Store User Data Policy, bao gồm các yêu cầu Limited Use.
+            </p>
+            <p className="mt-3">
+              Dữ liệu Google chỉ được dùng để cung cấp tính năng người dùng yêu cầu: xác thực Google, đọc danh sách calendar để bạn chọn calendar đích, tạo hoặc cập nhật sự kiện lịch, và ngắt kết nối tài khoản. CalendarVLU không bán dữ liệu Google, không dùng dữ liệu Google cho quảng cáo, không chia sẻ dữ liệu Google cho bên thứ ba không cần thiết, và không dùng dữ liệu Google để huấn luyện mô hình AI hoặc machine learning.
             </p>
           </section>
 

@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import FooterPage from '@/components/footer'
 
-const highlights = ['Quản lý việc học', 'Quản lý lịch thi', 'Google Calendar', 'Outlook', 'VLU']
+const highlights = ['Quản lý việc học', 'Quản lý lịch thi', 'Google Calendar', 'CSV/iCal', 'VLU']
 
 export default function LandingPage() {
   return (
@@ -16,7 +16,7 @@ export default function LandingPage() {
             </div>
             <div>
               <p className="text-sm font-semibold tracking-tight">CalendarVLU</p>
-              <p className="text-xs text-black/60">Đưa lịch học/lịch thi của bạn lên Google Calendar/Outlook</p>
+              <p className="text-xs text-black/60">Đưa lịch học/lịch thi của bạn lên Google Calendar</p>
             </div>
           </div>
         </header>
@@ -28,18 +28,18 @@ export default function LandingPage() {
               Dành cho sinh viên Văn Lang
             </div>
 
-            <h1 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-6xl">CalendarVLU giúp đưa lịch học và lịch thi của bạn lên Google Calendar/Outlook.</h1>
+            <h1 className="max-w-xl text-4xl font-semibold tracking-tight sm:text-6xl">CalendarVLU giúp đưa lịch học và lịch thi của bạn lên Google Calendar.</h1>
 
             <p className="mt-6 max-w-xl text-base leading-7 text-black/65 sm:text-lg">
-              Bạn đang tìm giải pháp để import lịch học/lịch thi của mình lên Google Calendar hay Outlook? Đây là giải pháp dành cho bạn.
+              Bạn đang tìm giải pháp để import lịch học/lịch thi của mình lên Google Calendar hoặc tải file CSV/iCal? Đây là giải pháp dành cho bạn.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="rounded-full px-6">
-                <Link href="/calendar-vlu-extension.zip" download>
+                <a href="/calendar-vlu-extension.zip" download>
                   Tải xuống extension .zip
                   <Download className="h-4 w-4" />
-                </Link>
+                </a>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full border-black/15 bg-transparent px-6" disabled>
                 <span>
@@ -107,7 +107,7 @@ export default function LandingPage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             <div className="rounded-[1.5rem] border border-black/10 p-6">
               <p className="text-sm text-black/50">CalendarVLU</p>
-              <p className="mt-2 text-sm leading-6 text-black/70">CalendarVLU là công cụ giúp sinh viên Văn Lang import lịch học và lịch thi từ VLU sang Google Calendar và Outlook.</p>
+              <p className="mt-2 text-sm leading-6 text-black/70">CalendarVLU là công cụ giúp sinh viên Văn Lang import lịch học và lịch thi từ VLU sang Google Calendar.</p>
             </div>
             <div className="rounded-[1.5rem] border border-black/10 p-6">
               <p className="text-sm text-black/50">Bảo mật</p>
@@ -115,7 +115,7 @@ export default function LandingPage() {
             </div>
             <div className="rounded-[1.5rem] border border-black/10 p-6">
               <p className="text-sm text-black/50">Nền tảng hỗ trợ</p>
-              <p className="mt-2 text-sm leading-6 text-black/70">Hiện tại CalendarVLU hỗ trợ Google Calendar và Outlook. Bạn có thể dùng trực tiếp từ trình duyệt Chrome.</p>
+              <p className="mt-2 text-sm leading-6 text-black/70">Hiện tại CalendarVLU hỗ trợ Google Calendar và xuất CSV/iCal. Bạn có thể dùng trực tiếp từ trình duyệt Chrome.</p>
             </div>
             <div className="rounded-[1.5rem] border border-black/10 p-6">
               <p className="text-sm text-black/50">Chi phí</p>

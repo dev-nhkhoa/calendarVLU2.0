@@ -1,6 +1,6 @@
 # CalendarVLU
 
-Đưa lịch học và lịch thi của bạn lên Google Calendar và Outlook.
+Đưa lịch học và lịch thi của bạn lên Google Calendar.
 
 CalendarVLU là công cụ giúp sinh viên Đại học Văn Lang (VLU) import lịch học (`lichHoc`) và lịch thi (`lichThi`) từ [online.vlu.edu.vn](https://online.vlu.edu.vn) sang các nền tảng lịch phổ biến. Dự án gồm hai phần:
 
@@ -11,7 +11,7 @@ CalendarVLU là công cụ giúp sinh viên Đại học Văn Lang (VLU) import 
 
 - **Import lịch VLU** — Fetch lịch học và lịch thi trực tiếp từ online.vlu.edu.vn
 - **Nhập lịch lên Google Calendar** — Đẩy lịch lên Google Calendar qua OAuth 2.0
-- **Hỗ trợ Outlook** — Đẩy lịch lên Outlook qua OAuth 2.0
+- **Xuất CSV/iCal** — Tải dữ liệu lịch để import vào ứng dụng lịch khác
 - **Export CSV** — Tải xuống tất cả event lịch học/lịch thi định dạng file .csv
 
 ## Hướng dẫn cài đặt

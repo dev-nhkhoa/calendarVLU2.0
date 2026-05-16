@@ -29,8 +29,13 @@
 ## Chrome Web Store (S8-TC05)
 - [ ] Store listing text finalized (title, description, screenshots)
 - [ ] Permission justifications documented
-- [ ] Privacy policy URL set to https://calen-vlu.nhkhoa.live/privacy-policy
+- [ ] Privacy policy URL set to https://calendar-vlu.nhkhoa.site/privacy-policy
+- [ ] Terms URL set to https://calendar-vlu.nhkhoa.site/terms
+- [ ] Chrome Web Store privacy practices match the published privacy policy and actual extension behavior
+- [ ] Google API Limited Use statement is present in the published privacy policy
+- [ ] Listing does not mention unshipped Outlook functionality
 - [ ] Extension package built and tested
+- [ ] Production manifest contains no localhost, ws://, dev content scripts, or unnecessary HTTP host permissions
 - [ ] No secrets bundled in extension package
 - [ ] Extension icon and screenshots prepared
 

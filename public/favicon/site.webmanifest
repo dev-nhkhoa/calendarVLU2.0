@@ -1,7 +1,7 @@
 {
   "name": "CalendarVLU",
   "short_name": "CalendarVLU",
-  "description": "Import lịch học, lịch thi VLU sang Google Calendar và Outlook",
+  "description": "Import lịch học, lịch thi VLU sang Google Calendar",
   "icons": [
     {
       "src": "/favicon/web-app-manifest-192x192.png",

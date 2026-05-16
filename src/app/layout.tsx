@@ -15,11 +15,11 @@ const siteUrl = 'https://calendar-vlu.nhkhoa.site'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
+    default: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar',
     template: '%s | CalendarVLU',
   },
   description:
-    'CalendarVLU giúp sinh viên Văn Lang import lịch học và lịch thi từ VLU Calendar sang Google Calendar và Outlook.',
+    'CalendarVLU giúp sinh viên Văn Lang import lịch học và lịch thi từ VLU Calendar sang Google Calendar.',
   keywords: [
     'CalendarVLU',
     'VLU',
@@ -28,7 +28,8 @@ export const metadata: Metadata = {
     'lịch học',
     'lịch thi',
     'Google Calendar',
-    'Outlook',
+    'CSV',
+    'iCal',
     'Chrome extension',
     'import lịch',
     'trường đại học Văn Lang',
@@ -45,9 +46,9 @@ export const metadata: Metadata = {
   },
   manifest: '/favicon/site.webmanifest',
   openGraph: {
-    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
+    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar',
     description:
-      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar và Outlook.',
+      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar.',
     url: siteUrl,
     siteName: 'CalendarVLU',
     locale: 'vi_VN',
@@ -56,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar và Outlook',
+    title: 'CalendarVLU - Import lịch học, lịch thi VLU sang Google Calendar',
     description:
-      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar và Outlook.',
+      'CalendarVLU giúp sinh viên Văn Lang đưa lịch học và lịch thi lên Google Calendar.',
     images: ['/logo.png'],
   },
   robots: {

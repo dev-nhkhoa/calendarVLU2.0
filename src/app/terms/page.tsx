@@ -21,7 +21,7 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-3 text-base font-semibold text-black">1. Giới thiệu</h2>
             <p>
-              CalendarVLU là công cụ mã nguồn mở giúp sinh viên trường Đại học Văn Lang (VLU) import lịch học và lịch thi từ cổng thông tin VLU lên Google Calendar hoặc Outlook.
+              CalendarVLU là công cụ mã nguồn mở giúp sinh viên trường Đại học Văn Lang (VLU) import lịch học và lịch thi từ cổng thông tin VLU lên Google Calendar.
               Bằng cách sử dụng dịch vụ này, bạn đồng ý với các điều khoản dưới đây.
             </p>
           </section>
@@ -34,7 +34,7 @@ export default function TermsPage() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>Tiện ích trình duyệt Chrome để đọc lịch học và lịch thi từ tài khoản VLU của bạn.</li>
               <li>Khả năng đồng bộ dữ liệu lịch lên Google Calendar.</li>
-              <li>Khả năng xuất dữ liệu lịch dưới dạng file CSV để import vào Outlook hoặc ứng dụng khác.</li>
+              <li>Khả năng xuất dữ liệu lịch dưới dạng file CSV hoặc iCal để import vào ứng dụng lịch khác.</li>
             </ul>
           </section>
 

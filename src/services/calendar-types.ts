@@ -37,6 +37,7 @@ export const vluCookieSchema = z.object({
 
 export const extensionVluInputSchema = z.object({
   cookies: z.array(vluCookieSchema).min(1),
+  selectedCookieHeader: z.string().min(1),
 })
 
 export const checkSessionRequestSchema = z.object({
@@ -96,7 +97,3 @@ export type CalendarEventType = z.infer<typeof calendarEventTypeSchema>
 export type NormalizedCalendarEvent = z.infer<typeof normalizedCalendarEventSchema>
 export type CalendarRequest = z.infer<typeof calendarRequestSchema>
 export type VluCookie = z.infer<typeof vluCookieSchema>
-
-export function formatCookieHeader(cookies: VluCookie[]) {
-  return cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ')
-}

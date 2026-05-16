@@ -26,6 +26,7 @@ describe('POST /api/extension/vlu/calendars', () => {
           vlu: {
             baseUrl: 'https://evil.test/steal-cookies',
             cookies: [{ name: 'ASP.NET_SessionId', value: 'secret-cookie' }],
+            selectedCookieHeader: 'ASP.NET_SessionId=secret-cookie',
           },
           filters: {
             types: ['study'],
@@ -50,7 +51,13 @@ describe('POST /api/extension/vlu/calendars', () => {
   })
 
   it('maps expired VLU sessions to COOKIE_EXPIRED without returning raw cookies', async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 302, text: async () => '' }) as jest.Mock
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 302,
+      statusText: 'Found',
+      headers: { get: () => null },
+      text: async () => '',
+    }) as jest.Mock
 
     const response = await POST(
       new Request('https://calendarvlu.test/api/extension/vlu/calendars', {
@@ -60,6 +67,7 @@ describe('POST /api/extension/vlu/calendars', () => {
           vlu: {
             baseUrl: 'https://evil.test/steal-cookies',
             cookies: [{ name: 'ASP.NET_SessionId', value: 'secret-cookie' }],
+            selectedCookieHeader: 'ASP.NET_SessionId=secret-cookie',
           },
           filters: {
             types: ['study'],

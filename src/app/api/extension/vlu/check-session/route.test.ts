@@ -24,6 +24,7 @@ describe('POST /api/extension/vlu/check-session', () => {
           vlu: {
             baseUrl: 'https://evil.test/steal-cookies',
             cookies: [{ name: 'ASP.NET_SessionId', value: 'secret-cookie' }],
+            selectedCookieHeader: 'ASP.NET_SessionId=secret-cookie',
           },
         }),
       }),
@@ -49,6 +50,7 @@ describe('POST /api/extension/vlu/check-session', () => {
         body: JSON.stringify({
           vlu: {
             cookies: [{ name: 'ASP.NET_SessionId', value: 'bad value with space' }],
+            selectedCookieHeader: 'ASP.NET_SessionId=bad value with space',
           },
         }),
       }),

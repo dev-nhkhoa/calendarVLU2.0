@@ -1,4 +1,4 @@
-import { extensionCalendarsRequestSchema, formatCookieHeader } from '@/services/calendar-types'
+import { extensionCalendarsRequestSchema } from '@/services/calendar-types'
 import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { CalendarServiceError, CalendarServiceErrorCode, ParserWarning } from '@/services/errors'
 import { parseVluCalendar } from '@/services/calendar-parser'
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
   try {
     const body = extensionCalendarsRequestSchema.parse(await readLimitedJson(request))
-    const cookie = formatCookieHeader(body.vlu.cookies)
+    const cookie = body.vlu.selectedCookieHeader
     const events: CalendarType[] = []
     const allWarnings: ParserWarning[] = []
 
@@ -32,6 +32,8 @@ export async function POST(request: Request) {
         valueLength: cookie.value.length,
         valuePreview: cookie.value.length > 8 ? `${cookie.value.slice(0, 4)}...${cookie.value.slice(-4)}` : '[redacted]',
       })),
+      selectedCookieHeader: body.vlu.selectedCookieHeader.replace(/=.*/, '=[REDACTED]'),
+      selectedCookieHeaderLength: body.vlu.selectedCookieHeader.length,
       filters: body.filters,
       origin: request.headers.get('origin'),
       client: request.headers.get('x-calendarvlu-client'),

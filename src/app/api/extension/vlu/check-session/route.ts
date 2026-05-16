@@ -1,5 +1,5 @@
 import { fetchRawVluCalendar } from '@/services/vlu-client'
-import { checkSessionRequestSchema, formatCookieHeader } from '@/services/calendar-types'
+import { checkSessionRequestSchema } from '@/services/calendar-types'
 import { extensionError, extensionJson, guardExtensionRequest, handleOptionsRequest, mapUnknownError, readLimitedJson } from '@/services/extension-api'
 import { getCurrentTermID, getCurrentYearStudy } from '@/lib/calendar'
 import { CalendarServiceError, CalendarServiceErrorCode } from '@/services/errors'
@@ -15,12 +15,14 @@ export async function POST(request: Request) {
 
   try {
     const body = checkSessionRequestSchema.parse(await readLimitedJson(request))
-    const cookie = formatCookieHeader(body.vlu.cookies)
+    const cookie = body.vlu.selectedCookieHeader
 
     console.info('[VLU check-session] Request accepted', {
       requestId: guard.requestId,
       cookieCount: body.vlu.cookies.length,
       cookieNames: body.vlu.cookies.map((cookie) => cookie.name),
+      selectedCookieHeader: body.vlu.selectedCookieHeader.replace(/=.*/, '=[REDACTED]'),
+      selectedCookieHeaderLength: body.vlu.selectedCookieHeader.length,
       origin: request.headers.get('origin'),
     })
 

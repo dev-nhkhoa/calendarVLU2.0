@@ -9,6 +9,8 @@ const publicRoutes = [
   '/auth/sign-out',
   '/privacy-policy',
   '/terms',
+  '/robots.txt',
+  '/sitemap.xml',
   '/api/auth',
   '/api/extension',
 ]

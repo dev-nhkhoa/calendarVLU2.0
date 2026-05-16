@@ -36,7 +36,7 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="rounded-full px-6">
-                <a href="/calendar-vlu-extension.zip" download>
+                <a href="/calendar-vlu-extension-v2.0.0.zip" download>
                   Tải xuống extension .zip
                   <Download className="h-4 w-4" />
                 </a>

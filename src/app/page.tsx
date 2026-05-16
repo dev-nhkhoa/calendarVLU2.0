@@ -60,18 +60,86 @@ export default function LandingPage() {
         </div>
 
         <section className="border-t border-black/10 py-14">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Hướng dẫn cài đặt</h2>
-            <p className="mt-3 text-sm text-black/60">Xem video hướng dẫn cài extension và import lịch VLU.</p>
-            <div className="mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-black/10">
-              <iframe
-                className="h-full w-full"
-                src="https://www.youtube.com/embed/x3m1PGEfG5c?loop=1&playlist=x3m1PGEfG5c"
-                title="Hướng dẫn cài đặt CalendarVLU"
-                loading="lazy"
-                allow="encrypted-media"
-                allowFullScreen
-              />
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Quy trình sử dụng CalendarVLU</h2>
+            <p className="mt-3 text-sm text-black/60">Làm theo 4 bước dưới đây để dễ dàng đưa lịch học và lịch thi lên Google Calendar.</p>
+          </div>
+          
+          <div className="mt-12 flex flex-col gap-16 max-w-4xl mx-auto">
+            {/* Step 1 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-bold">1</div>
+                <h3 className="text-lg font-semibold">Tải & cài đặt extension</h3>
+              </div>
+              <p className="text-sm text-black/60">Tải file .zip và thêm tiện ích CalendarVLU vào trình duyệt Chrome.</p>
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-black/10">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube.com/embed/JB0mVM-9jak?autoplay=1&mute=1&loop=1&playlist=JB0mVM-9jak"
+                  title="Hướng dẫn tải extension"
+                  loading="lazy"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-bold">2</div>
+                <h3 className="text-lg font-semibold">Đăng nhập tài khoản Google</h3>
+              </div>
+              <p className="text-sm text-black/60">Cấp quyền để ứng dụng có thể tạo và quản lý sự kiện trên lịch của bạn.</p>
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-black/10">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube.com/embed/haZW5KQPvv0?autoplay=1&mute=1&loop=1&playlist=haZW5KQPvv0"
+                  title="Hướng dẫn đăng nhập google account"
+                  loading="lazy"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-bold">3</div>
+                <h3 className="text-lg font-semibold">Tạo lịch mới trên Calendar</h3>
+              </div>
+              <p className="text-sm text-black/60">Thiết lập một bộ lịch (Calendar) riêng tư để dễ dàng theo dõi việc học.</p>
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-black/10">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube.com/embed/OKYN6DSIkuo?autoplay=1&mute=1&loop=1&playlist=OKYN6DSIkuo"
+                  title="Hướng dẫn đăng ký lịch trên google calendar"
+                  loading="lazy"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-bold">4</div>
+                <h3 className="text-lg font-semibold">Đồng bộ lịch học VLU</h3>
+              </div>
+              <p className="text-sm text-black/60">Mở extension, lấy dữ liệu từ portal VLU và đẩy lên Google Calendar.</p>
+              <div className="aspect-video w-full overflow-hidden rounded-xl border border-black/10">
+                <iframe
+                  className="h-full w-full"
+                  src="https://www.youtube.com/embed/lv3Bpp0OcZo?autoplay=1&mute=1&loop=1&playlist=lv3Bpp0OcZo"
+                  title="Hướng dẫn đồng bộ lịch học VLU lên Google Calendar"
+                  loading="lazy"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              </div>
             </div>
           </div>
         </section>

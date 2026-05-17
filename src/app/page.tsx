@@ -36,16 +36,10 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="rounded-full px-6">
-                <a href="/calendar-vlu-extension-v2.0.0.zip" download>
-                  Tải xuống extension .zip
-                  <Download className="h-4 w-4" />
-                </a>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full border-black/15 bg-transparent px-6" disabled>
-                <span>
-                  Chrome Web Store — Coming soon
+                <a href="https://chromewebstore.google.com/detail/calendarvlu/jbdkknnehlgieggklkainnfhiieepeha?authuser=1&hl=vi" target="_blank" rel="noopener noreferrer">
+                  Tải từ Chrome Web Store
                   <ArrowRight className="h-4 w-4" />
-                </span>
+                </a>
               </Button>
             </div>
 
@@ -70,9 +64,9 @@ export default function LandingPage() {
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white text-sm font-bold">1</div>
-                <h3 className="text-lg font-semibold">Tải & cài đặt extension</h3>
+                <h3 className="text-lg font-semibold">Cài đặt extension</h3>
               </div>
-              <p className="text-sm text-black/60">Tải file .zip và thêm tiện ích CalendarVLU vào trình duyệt Chrome.</p>
+              <p className="text-sm text-black/60">Cài đặt tiện ích CalendarVLU trực tiếp từ Chrome Web Store.</p>
               <div className="aspect-video w-full overflow-hidden rounded-xl border border-black/10">
                 <iframe
                   className="h-full w-full"
